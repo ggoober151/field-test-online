@@ -1250,8 +1250,23 @@ const remotes = new Map();
 const stats = new Map();   // id -> {k, d}
 function addStat(id, key){ if (!id) return; const s = stats.get(id) || { k:0, d:0 }; s[key]++; stats.set(id, s); }
 function toast(msg, ms=2500){ const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.add('hidden'), ms); }
+// Relay (TURN) servers let players connect when their routers block direct links.
+// Open Relay's free static-auth server: credentials are derived from its published shared secret.
+async function iceServers(){
+  const list = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:staticauth.openrelay.metered.ca:80' }];
+  try {
+    const username = (Math.floor(Date.now()/1000) + 24*3600) + ':fieldtest';
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey('raw', enc.encode('openrelayprojectsecret'), { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+    const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(username)));
+    const credential = btoa(String.fromCharCode(...sig));
+    list.push({ urls: ['turn:staticauth.openrelay.metered.ca:80', 'turn:staticauth.openrelay.metered.ca:80?transport=tcp', 'turn:staticauth.openrelay.metered.ca:443', 'turns:staticauth.openrelay.metered.ca:443?transport=tcp'], username, credential });
+  } catch {}
+  return list;
+}
+let ICE = null;
 function peerOptions(){
-  const o = { debug: 0 };
+  const o = { debug: 0, config: { iceServers: ICE || [{ urls: 'stun:stun.l.google.com:19302' }] } };
   if (QS.get('peerhost')){ o.host = QS.get('peerhost'); o.port = +QS.get('peerport') || 9000; o.path = '/'; o.secure = QS.get('peersecure') === '1'; }
   return o;
 }
@@ -1272,7 +1287,8 @@ const Net = {
 };
 function newCode(){ let c = ''; for (let i=0;i<5;i++) c += CODE_CHARS[Math.random()*CODE_CHARS.length|0]; return c; }
 function setHomeStatus(t){ $('homestatus').textContent = t; }
-function hostRoom(tries=0){
+async function hostRoom(tries=0){
+  if (!ICE) ICE = await iceServers();
   if (typeof Peer === 'undefined'){ setHomeStatus('Could not load the networking library. Check your connection and reload.'); return; }
   const code = newCode();
   setHomeStatus('Creating room...');
@@ -1299,15 +1315,23 @@ function hostRoom(tries=0){
   });
   peer.on('disconnected', () => { try { peer.reconnect(); } catch {} });
 }
-function joinRoom(code){
+async function joinRoom(code){
+  if (!ICE) ICE = await iceServers();
   if (typeof Peer === 'undefined'){ setHomeStatus('Could not load the networking library. Check your connection and reload.'); return; }
   code = (code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (code.length !== 5){ setHomeStatus('Room codes are 5 characters.'); return; }
   setHomeStatus('Joining room ' + code + '...');
   const peer = new Peer(peerOptions());
   Net.peer = peer;
-  let timer = setTimeout(()=>{ setHomeStatus('No answer from room ' + code + '. Check the code and that the host is still in the game.'); Net.close(); }, 12000);
+  let reached = false;
+  let timer = setTimeout(()=>{
+    setHomeStatus(reached
+      ? 'Found room ' + code + ' but could not connect to the host. One of your networks may be blocking player-to-player connections. Try again, or try a different network (for example a phone hotspot).'
+      : 'Could not reach the matchmaking server. Check your internet connection and try again.');
+    Net.close();
+  }, 25000);
   peer.on('open', id => {
+    reached = true; setHomeStatus('Connecting to the host of room ' + code + '...');
     const conn = peer.connect(ID_PREFIX + code, { reliable: true, serialization: 'json' });
     conn.on('open', () => {
       clearTimeout(timer);
