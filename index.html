@@ -42,7 +42,8 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 .btn:hover,.btn:focus-visible{border-color:var(--accent);outline:none}
 .btn.primary{border-color:var(--accent);color:var(--accent)}
 /* pause */
-#pause{background:rgba(6,8,10,.72);padding:16px}
+#pause{background:rgba(6,8,10,.72);padding:16px;overflow:auto;align-items:safe center}
+#pause .wrap{margin:auto 0}
 #pause .wrap{width:min(760px,100%);display:flex;flex-direction:column;gap:14px}
 #pause h2{margin:0;letter-spacing:.2em;font-size:26px}
 #pause .lbl{font-size:12px;letter-spacing:.2em;color:var(--dim)}
@@ -106,6 +107,48 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 .board .pl{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-variant-numeric:tabular-nums}
 .board .pl span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .board .me{color:var(--accent)}
+#lobby{background:linear-gradient(to top,rgba(8,10,13,.94),rgba(8,10,13,.55));padding:16px;overflow:auto;align-items:flex-start}
+.lobbywrap{width:min(1000px,100%);margin:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+@media (max-width:760px){ .lobbywrap{grid-template-columns:minmax(0,1fr)} }
+.lpanel{background:var(--panel);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.lpanel h2{margin:0;font-size:22px;letter-spacing:.15em}
+.lbl2{font-size:11px;letter-spacing:.2em;color:var(--dim)}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 10px;border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:13px}
+.prow .dot{width:10px;height:10px;border-radius:50%;background:var(--dim)}
+.prow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .cl{color:var(--dim);font-size:11px;letter-spacing:.12em}
+.prow .rd{font-size:11px;letter-spacing:.15em;color:var(--dim)}
+.prow .rd.on{color:#5fd38a}
+.prow.me{border-color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:13px;letter-spacing:.12em;color:var(--text);background:rgba(255,255,255,.03);border:1px solid var(--line);padding:9px 14px;cursor:pointer;flex:1 1 auto}
+.seg button.on{border-color:var(--c,var(--accent));color:var(--c,var(--accent));background:color-mix(in srgb,var(--c,var(--accent)) 14%,transparent)}
+.seg button:disabled{cursor:default;opacity:.9}
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mapcard{font:inherit;color:var(--text);text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line);padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mapcard canvas{width:100%;height:auto;aspect-ratio:1;display:block}
+.mapcard b{letter-spacing:.15em;font-size:14px}
+.mapcard small{color:var(--dim);font-size:11px}
+.mapcard.on{border-color:var(--accent);background:rgba(245,196,81,.08)}
+.mapcard:disabled{cursor:default}
+.readybtn{font:inherit;font-size:18px;letter-spacing:.2em;font-weight:700;padding:14px;border:1px solid #5fd38a;color:#5fd38a;background:rgba(95,211,138,.08);cursor:pointer}
+.readybtn.on{background:#5fd38a;color:#0d1014}
+.readybtn:focus-visible{outline:2px solid var(--accent)}
+.lb{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.lb th{font-weight:400;font-size:11px;letter-spacing:.15em;color:var(--dim);text-align:right;padding:4px 8px;border-bottom:1px solid var(--line)}
+.lb th:nth-child(2),.lb td:nth-child(2){text-align:left}
+.lb td{padding:5px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.05)}
+.lb td:nth-child(2){border-left:3px solid var(--c);max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb tr.me td{color:var(--accent)}
+.teamsum{display:flex;gap:10px;font-weight:700;font-size:18px;letter-spacing:.1em}
+.teamsum span{flex:1;padding:6px 10px;border:1px solid var(--line);background:var(--panel)}
+#results{background:rgba(6,8,10,.78);padding:16px;overflow:auto;align-items:safe center}
+#results .wrap{width:min(640px,100%);display:flex;flex-direction:column;gap:14px}
+#results h2{margin:0;font-size:clamp(26px,5vw,44px);letter-spacing:.15em}
+#timer{position:absolute;top:50px;left:50%;transform:translateX(-50%);font-size:16px;font-weight:700;letter-spacing:.15em;background:var(--panel);border:1px solid var(--line);padding:2px 12px;font-variant-numeric:tabular-nums}
+#timer.low{color:var(--red)}
+#countdown{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:15;font-size:clamp(40px,9vw,96px);font-weight:700;letter-spacing:.2em;text-shadow:0 4px 18px #000;pointer-events:none}
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:20;background:var(--panel);border:1px solid var(--accent);padding:8px 14px;font-size:13px;letter-spacing:.08em}
 @media (max-width:600px){ #help{display:none} #hp{width:150px} #ammo .mag{font-size:32px} }
 </style></head><body>
@@ -126,6 +169,38 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
   </div>
 </div>
 <div id="toast" class="hidden"></div>
+<div id="countdown" class="hidden"></div>
+
+<div id="lobby" class="overlay hidden">
+  <div class="lobbywrap">
+    <section class="lpanel">
+      <h2>WAITING ROOM</h2>
+      <div class="hrow"><div><div class="lbl2">ROOM CODE</div><div class="code" id="lcode"></div></div><button class="btn" id="lcopy">COPY INVITE LINK</button></div>
+      <div class="lbl2" id="lcount">PLAYERS</div>
+      <div class="plist" id="lplayers"></div>
+      <button class="btn" id="lleave">LEAVE ROOM</button>
+    </section>
+    <section class="lpanel">
+      <div class="lbl2" id="lmaplbl">MAP</div>
+      <div class="maps" id="lmaps"></div>
+      <div class="lbl2">TEAM</div>
+      <div class="seg" id="lteam"><button data-team="red" style="--c:var(--red)">RED</button><button data-team="blue" style="--c:var(--blue)">BLUE</button></div>
+      <div class="lbl2">CLASS</div>
+      <div class="seg" id="lclass"></div>
+      <button class="readybtn" id="lready">READY UP</button>
+      <div class="status" id="lstatus"></div>
+    </section>
+  </div>
+</div>
+
+<div id="results" class="overlay hidden">
+  <div class="wrap">
+    <h2 id="rtitle">MATCH OVER</h2>
+    <div class="teamsum" id="rteams"></div>
+    <div id="rboard"></div>
+    <div class="status" id="rcount"></div>
+  </div>
+</div>
 
 <div id="menu" class="overlay menu hidden">
   <div class="wrap">
@@ -157,7 +232,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
   <div class="wrap">
     <h2 id="pausetitle">PAUSED</h2>
     <div class="hrow hidden" id="roominfo"><div><div class="lbl">ROOM CODE</div><div class="code" id="roomcode"></div></div><button class="btn" id="copylink">COPY INVITE LINK</button></div>
-    <div class="board hidden" id="board"></div>
+    <div class="hidden" id="board"></div>
     <div class="lbl" id="pauselbl">CLASS &middot; CHANGES APPLY ON YOUR NEXT SPAWN</div>
     <div class="cards" id="pausecards"></div>
     <div class="actions">
@@ -173,6 +248,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
   <div id="scope"><i class="h1"></i><i class="h2"></i><i class="v1"></i></div>
   <div id="help"><kbd>WASD</kbd> move &middot; <kbd>Shift</kbd> sprint &middot; <kbd>Ctrl</kbd>/<kbd>C</kbd> slide &middot; <kbd>Space</kbd> jump<br><kbd>LMB</kbd> fire &middot; <kbd>RMB</kbd>/<kbd>Q</kbd> aim &middot; <kbd>R</kbd> reload &middot; <kbd>V</kbd> camera &middot; <kbd>Tab</kbd> menu &amp; scores</div>
   <div id="score"><div class="r" id="sr">0</div><div class="mid">KILLS</div><div class="bl" id="sb">0</div></div>
+  <div id="timer" class="hidden">5:00</div>
   <div id="feed"></div>
   <div id="cross"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="d"></i></div>
   <div id="hit"></div>
@@ -301,9 +377,145 @@ function groundTexture(){
 const HALF = 100;
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(HALF*2.2, HALF*2.2), new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 0.95 }));
 ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+const spawnPads = [];
 for (const [team, z] of [['red',-45],['blue',45]]){
   const pad = new THREE.Mesh(new THREE.RingGeometry(5.6, 6, 48), new THREE.MeshBasicMaterial({ color: TEAM_COL[team], transparent:true, opacity:.6 }));
-  pad.rotation.x = -Math.PI/2; pad.position.set(0, 0.01, z); scene.add(pad);
+  pad.rotation.x = -Math.PI/2; pad.position.set(0, 0.01, z); scene.add(pad); spawnPads.push(pad);
+}
+
+
+// ---------- Maps (simple geometric arenas with box collision) ----------
+function gridTex(base, line){
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0,0,128,128);
+  for (let i=0;i<1400;i++){ g.fillStyle = `rgba(0,0,0,${Math.random()*0.05})`; g.fillRect(Math.random()*128, Math.random()*128, 2, 2); }
+  g.strokeStyle = line; g.lineWidth = 3; g.strokeRect(0,0,128,128);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t;
+}
+// scale a box's UVs so the texture repeats once per metre on every face
+function boxGeo(w, h, d){
+  const g = new THREE.BoxGeometry(w, h, d), uv = g.attributes.uv;
+  const dims = [[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
+  for (let f=0; f<6; f++) for (let v=0; v<4; v++){ const i = f*4+v; uv.setXY(i, uv.getX(i)*dims[f][0], uv.getY(i)*dims[f][1]); }
+  return g;
+}
+const MAPS = {
+  crossfire: {
+    name:'CROSSFIRE', desc:'Lanes, crate stacks and a two-story center block', half:40,
+    floor:['#8d8576','rgba(60,52,40,.45)'], kinds:{ block:'#b9a58a', wall:'#a8927a', low:'#c9b08c', crate:'#9a6b3f', pillar:'#a8927a' },
+    spawns:{ red:[0,-35,16,5], blue:[0,35,16,5] },
+    build(B, S){
+      B(0,0,10,10,3,0,'block',false);
+      S(5,0,'x',1,4,6,0.5,0.8);                         // stairs up both sides of the center block
+      B(0,-3.6,6,0.4,1,3,'low'); B(-3.6,0,0.4,3,1,3,'low');
+      B(-17,-10,1,12,3.2,0,'wall'); B(-17,12,1,8,3.2,0,'wall');
+      B(-8,-22,10,1,2.2,0,'wall'); B(13,-20,6,1,2.2,0,'wall');
+      B(-6,-12,1.4,1.4,1.4,0,'crate'); B(-4.5,-12,1.4,1.4,1.4,0,'crate'); B(-5.25,-12,1.4,1.4,1.4,1.4,'crate');
+      B(9,-6,1.6,1.6,1.6,0,'crate'); B(-26,0,2,2,2,0,'crate'); B(-28,-18,1.5,1.5,1.5,0,'crate');
+      B(-12,-30,1.5,1.5,1.5,0,'crate'); B(22,-8,3,1,1.2,0,'low'); B(-24,10,1.4,1.4,1.4,0,'crate'); B(-30,-26,4,1,1.2,0,'low');
+      B(-34,0,6,8,2.5,0,'block'); S(-31,0,'x',1,4,5,0.5,0.8);   // side perch with stairs
+      B(27,-30,1.4,1.4,1.4,0,'crate');
+    },
+  },
+  pillars: {
+    name:'PILLARS', desc:'Open courtyard of pillars between two raised decks', half:34,
+    floor:['#7d8794','rgba(30,40,55,.4)'], kinds:{ block:'#9aa6b4', wall:'#8c98a6', low:'#b3bdc8', crate:'#6f7f92', pillar:'#c4ccd6' },
+    spawns:{ red:[0,-30,18,4], blue:[0,30,18,4] },
+    build(B, S){
+      for (const x of [-16,-8,0,8,16]) for (const z of [-8,8]) B(x,z,1.4,1.4,5,0,'pillar',false);
+      B(0,0,6,1,1.2,0,'low',false); B(0,0,1,6,1.2,0,'low',false);
+      B(0,-22,24,5,2,0,'block'); S(0,-19.5,'z',1,5,4,0.5,0.7); S(0,-24.5,'z',-1,5,4,0.5,0.7);
+      S(-12,-22,'x',-1,3,4,0.5,0.7); S(12,-22,'x',1,3,4,0.5,0.7);
+      B(-6,-20.2,3,0.4,1,2,'low'); B(6,-20.2,3,0.4,1,2,'low');
+      B(-24,-6,1,5,1.2,0,'low'); B(-26,-14,4,4,2.4,0,'block');
+      B(-12,-14,1.4,1.4,1.4,0,'crate'); B(10,-14,1.4,1.4,1.4,0,'crate'); B(24,-15,1.4,1.4,1.4,0,'crate');
+    },
+  },
+};
+const MAP_IDS = Object.keys(MAPS);
+// collect a map's boxes (mirrored through the centre for fairness) as plain data
+function mapBoxes(id){
+  const M = MAPS[id], out = [];
+  const B = (x, z, w, d, h, y=0, kind='wall', mirror=true) => {
+    out.push({ x, z, w, d, h, y, kind });
+    if (mirror && (x !== 0 || z !== 0)) out.push({ x:-x, z:-z, w, d, h, y, kind });
+  };
+  const S = (x0, z0, axis, sign, width, n, stepH, stepD, mirror=true) => {
+    for (let k=1; k<=n; k++){
+      const off = sign*(k-0.5)*stepD, h = stepH*(n-k+1);
+      if (axis === 'x') B(x0+off, z0, stepD, width, h, 0, 'block', mirror);
+      else B(x0, z0+off, width, stepD, h, 0, 'block', mirror);
+    }
+  };
+  M.build(B, S);
+  const H = M.half;   // perimeter walls
+  out.push({ x:0, z:-H-0.5, w:2*H+2, d:1, h:5, y:0, kind:'wall' }, { x:0, z:H+0.5, w:2*H+2, d:1, h:5, y:0, kind:'wall' },
+           { x:-H-0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' }, { x:H+0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' });
+  return out;
+}
+let CUR_MAP = null, COL = [], mapGroup = null, mapMeshes = [];
+function buildMap(id){
+  clearMap();
+  const M = MAPS[id]; if (!M) return;
+  CUR_MAP = { id, ...M };
+  mapGroup = new THREE.Group(); scene.add(mapGroup);
+  const ft = gridTex(M.floor[0], M.floor[1]); ft.repeat.set(M.half, M.half);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(M.half*2, M.half*2), new THREE.MeshStandardMaterial({ map: ft, roughness: .95 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = 0.006; floor.receiveShadow = true; mapGroup.add(floor);
+  const mats = {};
+  for (const k in M.kinds) mats[k] = new THREE.MeshStandardMaterial({ map: gridTex(M.kinds[k], 'rgba(0,0,0,.18)'), roughness: .85 });
+  for (const b of mapBoxes(id)){
+    const m = new THREE.Mesh(boxGeo(b.w, b.h, b.d), mats[b.kind] || mats.wall);
+    m.position.set(b.x, b.y + b.h/2, b.z); m.castShadow = m.receiveShadow = true;
+    mapGroup.add(m); mapMeshes.push(m);
+    COL.push({ minX:b.x-b.w/2, maxX:b.x+b.w/2, minZ:b.z-b.d/2, maxZ:b.z+b.d/2, minY:b.y, maxY:b.y+b.h });
+  }
+  for (const team of ['red','blue']){
+    const [x, z, w, d] = M.spawns[team];
+    const pad = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: TEAM_COL[team], transparent:true, opacity:.22 }));
+    pad.rotation.x = -Math.PI/2; pad.position.set(x, 0.012, z); mapGroup.add(pad);
+  }
+  for (const p of spawnPads) p.visible = false;
+}
+function clearMap(){
+  if (mapGroup){ mapGroup.traverse(o => { if (o.isMesh){ o.geometry.dispose(); } }); mapGroup.removeFromParent(); }
+  mapGroup = null; mapMeshes = []; COL = []; CUR_MAP = null;
+  for (const p of spawnPads) p.visible = true;
+}
+const STEP = 0.55, PR = 0.35;
+function groundAt(x, z, feet){
+  let g = 0;
+  for (const b of COL) if (x+PR*0.7 > b.minX && x-PR*0.7 < b.maxX && z+PR*0.7 > b.minZ && z-PR*0.7 < b.maxZ && b.maxY <= feet + STEP && b.maxY > g) g = b.maxY;
+  return g;
+}
+// push a standing player (feet at y, height h) out of every box it overlaps
+function collideMap(pos, vel, h){
+  for (const b of COL){
+    if (pos.y + h <= b.minY || pos.y >= b.maxY - 0.001 || b.maxY <= pos.y + STEP) continue;
+    const cx = clamp(pos.x, b.minX, b.maxX), cz = clamp(pos.z, b.minZ, b.maxZ);
+    let dx = pos.x - cx, dz = pos.z - cz, d2 = dx*dx + dz*dz;
+    if (d2 >= PR*PR) continue;
+    if (d2 < 1e-8){   // centre inside the box: leave by the shortest side
+      const pen = [[pos.x - b.minX, -1, 0], [b.maxX - pos.x, 1, 0], [pos.z - b.minZ, 0, -1], [b.maxZ - pos.z, 0, 1]].sort((a,c)=>a[0]-c[0])[0];
+      pos.x += pen[1]*(pen[0]+PR); pos.z += pen[2]*(pen[0]+PR);
+      if (pen[1]) vel.x = 0; else vel.z = 0;
+      continue;
+    }
+    const d = Math.sqrt(d2), push = PR - d; dx /= d; dz /= d;
+    pos.x += dx*push; pos.z += dz*push;
+    const vn = vel.x*dx + vel.z*dz; if (vn < 0){ vel.x -= vn*dx; vel.z -= vn*dz; }
+  }
+}
+function drawMinimap(canvas, id){
+  const M = MAPS[id], g = canvas.getContext('2d'), W = canvas.width, Hh = canvas.height, sc = W / (M.half*2 + 4);
+  g.fillStyle = M.floor[0]; g.fillRect(0, 0, W, Hh);
+  const tx = x => (x + M.half + 2) * sc, tz = z => (z + M.half + 2) * sc;
+  for (const team of ['red','blue']){ const [x,z,w,d] = M.spawns[team]; g.fillStyle = team === 'red' ? 'rgba(229,72,77,.55)' : 'rgba(62,142,247,.55)'; g.fillRect(tx(x-w/2), tz(z-d/2), w*sc, d*sc); }
+  for (const b of mapBoxes(id).sort((a,c)=>(a.y+a.h)-(c.y+c.h))){
+    const t = clamp((b.y + b.h)/5, 0, 1); g.fillStyle = `rgba(20,24,28,${0.35 + t*0.5})`;
+    g.fillRect(tx(b.x-b.w/2), tz(b.z-b.d/2), Math.max(1, b.w*sc), Math.max(1, b.d*sc));
+  }
 }
 
 // ---------- Effects ----------
@@ -858,7 +1070,9 @@ function botShoot(bot, dist){
 function spawnPlayer(){
   const z = G.team === 'red' ? -45 : 45;
   P.cls = P.nextCls; P.W = WEAPONS[P.cls];
-  P.pos.set(rand(-3,3), 0, z + rand(-2,2)); P.vel.set(0,0,0);
+  if (CUR_MAP){ const [sx, sz, sw, sd] = CUR_MAP.spawns[G.team]; P.pos.set(sx + rand(-sw/2+1, sw/2-1), 0, sz + rand(-sd/2+0.8, sd/2-0.8)); }
+  else P.pos.set(rand(-3,3), 0, z + rand(-2,2));
+  P.vel.set(0,0,0);
   P.yaw = G.team === 'red' ? Math.PI : 0; P.pitch = 0;
   P.hp = 100; P.alive = true; P.ammo = P.W.mag; P.reserve = P.W.reserve; P.reloadT = 0; P.shotgunReload = false; P.cycleT = 0;
   P.sliding = 0; P.eye = 1.62; P.ads = 0;
@@ -923,9 +1137,11 @@ function playerFire(){
     const a = Math.random()*Math.PI*2, m = (W.pellets > 1 ? Math.sqrt(Math.random()) : Math.sqrt(Math.random())) * spread;
     const dir = fwd.clone().addScaledVector(r, Math.cos(a)*m).addScaledVector(u, Math.sin(a)*m).normalize();
     ray.set(origin, dir); ray.far = W.range;
-    const hits = ray.intersectObjects(targets.filter(t=>t.userData.bot.alive), false);
+    const hits = ray.intersectObjects([...targets.filter(t=>t.userData.bot.alive), ...mapMeshes], false);
     let end;
-    if (hits.length){
+    if (hits.length && !hits[0].object.userData.bot){
+      end = hits[0].point; puff(end, 0xb8b0a0, W.pellets > 1 ? 0.18 : 0.3);
+    } else if (hits.length){
       const h = hits[0], bot = h.object.userData.bot, head = !!h.object.userData.head;
       end = h.point;
       let dmg = head ? W.head : W.dmg;
@@ -1003,9 +1219,21 @@ function updatePlayer(dt){
   }
   if (P.jumpReq){ P.jumpReq = false; if (P.onGround){ P.vel.y = 5.8; P.onGround = false; P.sliding = 0; } }
   P.vel.y -= 18*dt;
+  const wasGround = P.onGround;
   P.pos.addScaledVector(P.vel, dt);
-  if (P.pos.y <= 0){ P.pos.y = 0; P.vel.y = 0; P.onGround = true; }
-  P.pos.x = clamp(P.pos.x, -HALF+1, HALF-1); P.pos.z = clamp(P.pos.z, -HALF+1, HALF-1);
+  if (CUR_MAP){
+    collideMap(P.pos, P.vel, P.sliding > 0 ? 0.9 : 1.75);
+    const g = groundAt(P.pos.x, P.pos.z, Math.max(P.pos.y, P.pos.y - P.vel.y*dt));
+    if (P.pos.y <= g){ P.pos.y = g; P.vel.y = Math.max(0, P.vel.y); P.onGround = true; }
+    else if (wasGround && P.vel.y <= 0 && P.pos.y - g < STEP){ P.pos.y = g; P.vel.y = 0; P.onGround = true; }   // walk down steps
+    else P.onGround = false;
+    // ceilings
+    for (const b of COL) if (P.vel.y > 0 && P.pos.x > b.minX && P.pos.x < b.maxX && P.pos.z > b.minZ && P.pos.z < b.maxZ && P.pos.y + 1.75 > b.minY && P.pos.y < b.minY){ P.pos.y = b.minY - 1.75; P.vel.y = 0; }
+    const lim = CUR_MAP.half - PR; P.pos.x = clamp(P.pos.x, -lim, lim); P.pos.z = clamp(P.pos.z, -lim, lim);
+  } else {
+    if (P.pos.y <= 0){ P.pos.y = 0; P.vel.y = 0; P.onGround = true; } else P.onGround = P.pos.y <= 0.001;
+    P.pos.x = clamp(P.pos.x, -HALF+1, HALF-1); P.pos.z = clamp(P.pos.z, -HALF+1, HALF-1);
+  }
   for (const b of G.bots){ if (!b.alive) continue; const d = V3().subVectors(P.pos, b.pos); d.y = 0; const l = d.length(); if (l < 0.7 && l > 1e-4) P.pos.addScaledVector(d.normalize(), 0.7-l); }
   P.eye = damp(P.eye, P.sliding > 0 ? 0.85 : 1.62, 12, dt);
   // magazine reload
@@ -1214,6 +1442,8 @@ function pause(){
   $('pausetitle').textContent = G.online ? 'MENU' : 'PAUSED';
   $('roominfo').classList.toggle('hidden', !G.online); $('board').classList.toggle('hidden', !G.online);
   $('roomcode').textContent = Net.code || '';
+  $('changeteam').classList.toggle('hidden', !!G.online);
+  $('leavebtn').textContent = G.online ? 'LEAVE ROOM' : 'LEAVE GAME';
   $('pause').classList.remove('hidden');
 }
 function resume(){
@@ -1242,6 +1472,132 @@ $('copylink').onclick = ()=>{
   try { navigator.clipboard.writeText(url).then(done, ()=> toast(url, 6000)); } catch { toast(url, 6000); }
 };
 
+
+
+// ---------- Waiting room & match flow (the host decides; everyone follows) ----------
+const MATCH_SECS = +QS.get('matchsecs') || 300, RESULTS_SECS = +QS.get('resultsecs') || 10, COUNTDOWN_SECS = 3;
+const Room = { phase:'lobby', map:'crossfire', endAt:0, startAt:0, resultsUntil:0, dur:MATCH_SECS };
+const lobbyInfo = new Map();   // id -> { name, tm, c, rd, lb, w, last }
+const hostId = () => Net.code ? ID_PREFIX + Net.code : null;
+const fmtTime = ms => { const t = Math.max(0, Math.ceil(ms/1000)); return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0'); };
+function roomInfo(){ return { ph: Room.phase, map: Room.map, rem: Room.phase === 'match' ? Math.max(0, Math.round((Room.endAt - performance.now())/1000)) : 0 }; }
+function lobbyPlayers(){
+  const me = { id: Net.myId, name: P.name, tm: G.team, c: P.nextCls, rd: P.ready, lb: G.state === 'lobby', me: true };
+  return [me, ...[...lobbyInfo.values()]];
+}
+function teamCounts(){ const n = { red:0, blue:0 }; for (const v of lobbyInfo.values()) if (v.tm in n) n[v.tm]++; return n; }
+function syncRoom(rm){
+  if (Net.isHost || !rm) return;
+  if (MAPS[rm.map]) Room.map = rm.map;
+  const now = performance.now();
+  if (rm.ph === 'match'){
+    const endAt = now + (+rm.rem || 0)*1000;
+    if (Room.phase !== 'match' && Room.phase !== 'countdown'){ Room.phase = 'match'; Room.endAt = endAt; }
+    else if (Room.phase === 'match' && Math.abs(Room.endAt - endAt) > 2000) Room.endAt = endAt;
+  } else if (rm.ph === 'lobby' && Room.phase === 'match' && G.state === 'lobby'){ Room.phase = 'lobby'; }
+  if (G.state === 'lobby') renderLobby();
+}
+function hostStart(){ const msg = { t:'start', map: Room.map, dur: MATCH_SECS, delay: COUNTDOWN_SECS }; Net.send(msg); onStart(msg); }
+function onStart(msg){
+  if (Room.phase === 'countdown' || Room.phase === 'match') return;
+  Room.phase = 'countdown'; Room.map = MAPS[msg.map] ? msg.map : 'crossfire'; Room.dur = clamp(+msg.dur || 300, 10, 3600);
+  Room.startAt = performance.now() + clamp(+msg.delay || 3, 0, 10)*1000;
+  if (G.state === 'lobby') renderLobby();
+}
+function beginMatch(late=false){
+  if (!late){ Room.phase = 'match'; Room.endAt = performance.now() + Room.dur*1000; stats.clear(); G.score = { red:0, blue:0 }; }
+  if (!G.team){ const n = teamCounts(); G.team = n.red <= n.blue ? 'red' : 'blue'; }
+  $('countdown').classList.add('hidden');
+  buildMap(Room.map);
+  startGame(G.team);
+}
+function hostEnd(){ const msg = { t:'end', score: G.score, stats: [...stats] }; Net.send(msg); onEnd(msg); }
+function onEnd(msg){
+  if (Room.phase === 'results') return;
+  if (msg.score) G.score = { red: +msg.score.red || 0, blue: +msg.score.blue || 0 };
+  if (Array.isArray(msg.stats)){ stats.clear(); for (const [k, v] of msg.stats) stats.set(k, { k: +v?.k || 0, d: +v?.d || 0 }); }
+  Room.phase = 'results'; Room.resultsUntil = performance.now() + RESULTS_SECS*1000;
+  if (G.state === 'lobby'){ return; }            // watched from the waiting room: nothing to show
+  if (document.pointerLockElement) document.exitPointerLock();
+  G.paused = false; G.state = 'results'; mouse.l = mouse.r = false; for (const k in keys) keys[k] = false;
+  const r = G.score.red, b = G.score.blue;
+  $('rtitle').textContent = r === b ? 'DRAW' : (r > b ? 'RED WINS' : 'BLUE WINS');
+  $('rtitle').style.color = r === b ? 'var(--text)' : `var(--${r > b ? 'red' : 'blue'})`;
+  renderLeaderboard($('rboard'), $('rteams'));
+  showOnly('results'); $('hud').classList.add('hidden');
+}
+function backToLobby(){
+  clearGame(); clearMap(); G.inWorld = false; P.alive = false; P.ready = false;
+  Room.phase = 'lobby';
+  toLobby();
+}
+function toLobby(){
+  if (document.pointerLockElement) document.exitPointerLock();
+  G.state = 'lobby'; G.paused = false;
+  for (const t in G.preview){ const s = G.preview[t]; s.root.visible = true; s.root.position.x = s.homeX; s.root.rotation.y = s.homeX < 0 ? 0.25 : -0.25; }
+  showOnly('lobby'); $('hud').classList.add('hidden'); $('timer').classList.add('hidden');
+  buildLobbyStatic(); renderLobby();
+}
+let lobbyBuilt = false;
+function buildLobbyStatic(){
+  if (lobbyBuilt) return; lobbyBuilt = true;
+  $('lmaps').innerHTML = MAP_IDS.map(id => `<button class="mapcard" data-map="${id}"><canvas width="200" height="200"></canvas><b>${MAPS[id].name}</b><small>${MAPS[id].desc}</small></button>`).join('');
+  $('lmaps').querySelectorAll('.mapcard').forEach(btn => {
+    drawMinimap(btn.querySelector('canvas'), btn.dataset.map);
+    btn.addEventListener('click', () => { if (!Net.isHost || Room.phase !== 'lobby') return; Room.map = btn.dataset.map; renderLobby(); sendState(); });
+  });
+  $('lclass').innerHTML = CLASS_IDS.map(id => `<button data-cls="${id}">${WEAPONS[id].cls}</button>`).join('');
+  $('lclass').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { P.nextCls = b.dataset.cls; renderLobby(); sendState(); }));
+  $('lteam').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    G.team = b.dataset.team; for (const r of remotes.values()) r.refreshTag(); renderLobby(); sendState();
+  }));
+  $('lready').addEventListener('click', () => {
+    initAudio();
+    if (Room.phase === 'match'){ if (G.team) beginMatch(true); return; }
+    if (Room.phase !== 'lobby' || !G.team) return;
+    P.ready = !P.ready; renderLobby(); sendState();
+  });
+  $('lleave').addEventListener('click', () => leaveGame());
+  $('lcopy').addEventListener('click', () => $('copylink').click());
+}
+function renderLobby(){
+  if (G.state !== 'lobby') return;
+  $('lcode').textContent = Net.code || '';
+  const now = performance.now();
+  const ps = lobbyPlayers();
+  $('lcount').textContent = `PLAYERS · ${ps.length}/${MAX_PLAYERS}`;
+  const list = $('lplayers'); list.replaceChildren();
+  for (const p of ps){
+    const row = document.createElement('div'); row.className = 'prow' + (p.me ? ' me' : '');
+    const dot = document.createElement('span'); dot.className = 'dot'; if (p.tm === 'red' || p.tm === 'blue') dot.style.background = `var(--${p.tm})`;
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.name + (p.me ? ' (you)' : '') + ((p.me ? Net.isHost : p.id === hostId()) ? ' ★' : '');
+    const cl = document.createElement('span'); cl.className = 'cl'; cl.textContent = WEAPONS[p.c]?.cls || '';
+    const rd = document.createElement('span'); rd.className = 'rd';
+    if (!p.lb && Room.phase === 'match'){ rd.textContent = 'IN MATCH'; }
+    else if (!p.lb){ rd.textContent = 'RETURNING'; }
+    else { rd.textContent = p.rd ? 'READY' : 'NOT READY'; rd.classList.toggle('on', p.rd); }
+    row.append(dot, nm, cl, rd); list.appendChild(row);
+  }
+  $('lmaplbl').textContent = Net.isHost ? 'MAP · YOU ARE THE HOST, PICK ONE' : 'MAP · THE HOST PICKS';
+  $('lmaps').querySelectorAll('.mapcard').forEach(b => { b.classList.toggle('on', b.dataset.map === Room.map); b.disabled = !Net.isHost || Room.phase !== 'lobby'; });
+  $('lteam').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.team === G.team));
+  $('lclass').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.cls === P.nextCls));
+  const btn = $('lready'), st = $('lstatus');
+  btn.disabled = false;
+  if (Room.phase === 'match'){
+    btn.textContent = 'JOIN MATCH'; btn.classList.remove('on');
+    st.textContent = `Match in progress on ${MAPS[Room.map].name} · ${fmtTime(Room.endAt - now)} left`;
+  } else if (Room.phase === 'countdown'){
+    btn.textContent = 'STARTING...'; btn.disabled = true; st.textContent = 'Everyone is ready. Get set!';
+  } else if (Room.phase === 'results'){
+    btn.textContent = 'WAIT'; btn.disabled = true; st.textContent = 'The last match is wrapping up.';
+  } else {
+    btn.textContent = P.ready ? 'READY ✓' : 'READY UP'; btn.classList.toggle('on', P.ready);
+    const waiting = ps.filter(p => p.lb && !p.rd).length;
+    st.textContent = !G.team ? 'Pick a team to ready up.' : waiting ? `Waiting for ${waiting} player${waiting === 1 ? '' : 's'} to ready up. The match starts when everyone is ready.` : 'Everyone is ready.';
+  }
+}
+setInterval(() => { if (G.state === 'lobby') renderLobby(); }, 500);
 
 // ---------- Online play (PeerJS: the room creator hosts and relays) ----------
 const arr = v => [Math.round(v.x*100)/100, Math.round(v.y*100)/100, Math.round(v.z*100)/100];
@@ -1300,7 +1656,7 @@ async function hostRoom(tries=0){
       conn.on('open', () => {
         if (Net.conns.size >= MAX_PLAYERS - 1){ try { conn.send({ t:'full' }); } catch {} setTimeout(()=>conn.close(), 300); return; }
         Net.conns.set(conn.peer, conn);
-        conn.send({ t:'welcome', you: conn.peer, score: G.score, stats: [...stats] });
+        conn.send({ t:'welcome', you: conn.peer, score: G.score, stats: [...stats], rm: roomInfo() });
       });
       conn.on('data', msg => { if (!msg || typeof msg !== 'object') return; msg.id = conn.peer; handleNet(msg); Net.relay(msg, conn.peer); });
       conn.on('close', () => { Net.conns.delete(conn.peer); dropRemote(conn.peer); const bye = { t:'bye', id: conn.peer }; Net.relay(bye, null); });
@@ -1358,13 +1714,17 @@ function enterOnline(){
   G.online = true; setHomeStatus('');
   try { history.replaceState(null, '', '#' + Net.code); } catch {}
   stats.clear(); G.score = { red:0, blue:0 };
-  toTeamMenu();
+  Object.assign(Room, { phase:'lobby', map: Room.map || 'crossfire', endAt:0, startAt:0, resultsUntil:0 });
+  P.ready = false; G.team = null; P.nextCls = P.nextCls || 'rifle';
+  toLobby();
+  setTimeout(() => { if (G.online && !G.team){ const n = teamCounts(); G.team = n.red <= n.blue ? 'red' : 'blue'; renderLobby(); } }, Net.isHost ? 0 : 1200);
 }
 function leaveGame(){
   if (document.pointerLockElement) document.exitPointerLock();
   const wasOnline = G.online;
-  G.online = false; G.inWorld = false;
-  Net.close();
+  G.online = false; G.inWorld = false; P.ready = false;
+  Net.close(); clearMap(); lobbyInfo.clear();
+  Room.phase = 'lobby'; $('countdown').classList.add('hidden'); $('timer').classList.add('hidden');
   for (const id of [...remotes.keys()]) dropRemote(id);
   stats.clear();
   if (wasOnline){ try { history.replaceState(null, '', location.pathname); } catch {} }
@@ -1373,16 +1733,26 @@ function leaveGame(){
 function stateMsg(){
   const f = (P.sprint?1:0) | (P.ads>0.5?2:0) | (P.sliding>0?4:0) | ((P.reloadT>0||P.shotgunReload)?8:0);
   return { t:'s', n:P.name, tm:G.team || '', c:P.cls, p:arr(P.pos), y:Math.round(P.yaw*1000)/1000, pi:Math.round(P.pitch*1000)/1000,
-           v:[Math.round(P.vel.x*100)/100, Math.round(P.vel.z*100)/100], a:(P.alive && G.inWorld) ? 1 : 0, w:G.inWorld ? 1 : 0, f };
+           v:[Math.round(P.vel.x*100)/100, Math.round(P.vel.z*100)/100], a:(P.alive && G.inWorld) ? 1 : 0, w:G.inWorld ? 1 : 0, f,
+           rd: P.ready ? 1 : 0, lb: G.state === 'lobby' ? 1 : 0, nc: P.nextCls,
+           ...(Net.isHost ? { rm: roomInfo() } : {}) };
 }
 function sendState(now=false){ if (G.online) Net.send(stateMsg()); }
 function netTick(dt){
+  if (Net.isHost){
+    const now = performance.now();
+    if (Room.phase === 'lobby'){
+      const ps = lobbyPlayers().filter(p => p.lb);
+      if (ps.length && ps.every(p => p.rd && (p.tm === 'red' || p.tm === 'blue'))) hostStart();
+    } else if (Room.phase === 'match' && now >= Room.endAt) hostEnd();
+  }
   Net.sendT -= dt;
   if (Net.sendT <= 0){ Net.sendT = 0.05; sendState(); }
   const now = performance.now();
   for (const r of [...remotes.values()]) if (now - r.last > 8000) dropRemote(r.id);   // silent peers
+  for (const [k, v] of [...lobbyInfo]) if (now - v.last > 8000) lobbyInfo.delete(k);
 }
-function dropRemote(id){ const r = remotes.get(id); if (!r) return; r.dispose(); remotes.delete(id); }
+function dropRemote(id){ const r = remotes.get(id); if (r){ r.dispose(); remotes.delete(id); } if (G.state === 'lobby') renderLobby(); }
 function handleNet(msg){
   const id = msg.id;
   if (id === Net.myId && msg.t !== 'welcome') return;
@@ -1390,9 +1760,14 @@ function handleNet(msg){
     case 'welcome':
       if (msg.score) G.score = { red: +msg.score.red || 0, blue: +msg.score.blue || 0 };
       if (Array.isArray(msg.stats)) for (const [k, v] of msg.stats) stats.set(k, { k: +v.k || 0, d: +v.d || 0 });
+      if (msg.rm) syncRoom(msg.rm);
       break;
+    case 'start': if (id === hostId()) onStart(msg); break;
+    case 'end': if (id === hostId()) onEnd(msg); break;
     case 'full': toast('That room is full.', 4000); leaveGame(); break;
     case 's': {
+      lobbyInfo.set(id, { id, name: cleanName(msg.n), tm: msg.tm, c: WEAPONS[msg.nc] ? msg.nc : (WEAPONS[msg.c] ? msg.c : 'rifle'), rd: !!msg.rd, lb: !!msg.lb, w: !!msg.w, last: performance.now() });
+      if (id === hostId() && msg.rm) syncRoom(msg.rm);
       if (msg.tm !== 'red' && msg.tm !== 'blue') { const r = remotes.get(id); if (r) r.hide(); break; }
       let r = remotes.get(id);
       if (!r || r.team !== msg.tm){ if (r) dropRemote(id); r = new Remote(id, msg); remotes.set(id, r); }
@@ -1402,7 +1777,7 @@ function handleNet(msg){
     }
     case 'f': { const r = remotes.get(id); if (r) r.showFire(msg); break; }
     case 'hit': {
-      if (msg.to !== Net.myId || !P.alive || !G.inWorld) break;
+      if (msg.to !== Net.myId || !P.alive || !G.inWorld || G.state !== 'play') break;
       const r = remotes.get(id); if (!r || r.team === G.team) break;
       const d = Array.isArray(msg.d) ? V3(...msg.d) : null;
       hurtPlayer(clamp(+msg.dmg || 0, 0, 250), r, d, !!msg.h);
@@ -1410,6 +1785,7 @@ function handleNet(msg){
     }
     case 'death': {
       const r = remotes.get(id); const killer = msg.killer === Net.myId ? 'me' : remotes.get(msg.killer);
+      if (Room.phase !== 'match') break;
       addStat(id, 'd'); if (msg.killer) addStat(msg.killer, 'k');
       const kTeam = killer === 'me' ? G.team : killer?.team;
       if (kTeam === 'red' || kTeam === 'blue') G.score[kTeam]++;
@@ -1419,7 +1795,7 @@ function handleNet(msg){
       if (killer === 'me') hitMarker(true);
       break;
     }
-    case 'bye': dropRemote(id); break;
+    case 'bye': dropRemote(id); lobbyInfo.delete(id); break;
   }
 }
 function makeNameTag(text, team){
@@ -1447,7 +1823,7 @@ class Remote {
     this.tag = makeNameTag(this.name, this.team); this.s.root.add(this.tag);
     this.tag.visible = !G.team || this.team === G.team;
   }
-  hide(){ this.alive = false; this.s.root.visible = false; }
+  hide(){ this.alive = false; if (this.s.rag) this.s.endRagdoll(); this.s.root.visible = false; }
   apply(st){
     this.last = performance.now();
     const name = cleanName(st.n); if (name !== this.name){ this.name = name; this.refreshTag(); }
@@ -1498,18 +1874,33 @@ class Remote {
   }
   dispose(){ this.s.root.removeFromParent(); if (this.s.drop) this.s.drop.w.removeFromParent(); }
 }
+function allPlayers(){
+  const list = [{ id: Net.myId, name: P.name, tm: G.team, me: true }];
+  for (const [id, v] of lobbyInfo) list.push({ id, name: v.name, tm: v.tm });
+  return list.filter(p => p.tm === 'red' || p.tm === 'blue');
+}
+function renderLeaderboard(box, teamsBox){
+  const rows = allPlayers().map(p => ({ ...p, ...(stats.get(p.id) || { k:0, d:0 }) }))
+    .sort((a, b) => b.k - a.k || a.d - b.d || a.name.localeCompare(b.name));
+  const t = document.createElement('table'); t.className = 'lb';
+  t.innerHTML = '<thead><tr><th>#</th><th>PLAYER</th><th>KILLS</th><th>DEATHS</th><th>K/D</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  rows.forEach((p, i) => {
+    const tr = document.createElement('tr'); if (p.me) tr.className = 'me';
+    tr.style.setProperty('--c', `var(--${p.tm})`);
+    for (const v of [i + 1, p.name + (p.me ? ' (you)' : ''), p.k, p.d, (p.d ? p.k / p.d : p.k).toFixed(2)]){ const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); box.replaceChildren(t);
+  if (teamsBox) teamsBox.innerHTML = `<span style="color:var(--red)">RED ${G.score.red}</span><span style="color:var(--blue)">BLUE ${G.score.blue}</span>`;
+}
 function renderBoard(){
   if (!G.online){ $('board').innerHTML = ''; return; }
-  const rows = { red:[], blue:[] };
-  const me = { id: Net.myId, name: P.name + ' (you)', team: G.team, me:true };
-  for (const p of [me, ...remotes.values()]) if (rows[p.team]) rows[p.team].push(p);
-  $('board').innerHTML = ['red','blue'].map(t => {
-    const list = rows[t].map(p => { const s = stats.get(p.id) || { k:0, d:0 }; return `<div class="pl${p.me ? ' me' : ''}"><span></span><span>${s.k} / ${s.d}</span></div>`; }).join('') || '<div class="pl"><span style="color:var(--dim)">No players</span></div>';
-    return `<div class="col"><h3 style="color:var(--${t})">${t.toUpperCase()} &middot; ${G.score[t]}</h3><div class="pl" style="color:var(--dim);font-size:11px"><span>PLAYER</span><span>K / D</span></div>${list}</div>`;
-  }).join('');
-  // names go in as text, never HTML
-  const cols = $('board').querySelectorAll('.col');
-  ['red','blue'].forEach((t, i) => { const spans = cols[i].querySelectorAll('.pl > span:first-child'); rows[t].forEach((p, j) => { if (spans[j+1]) spans[j+1].textContent = p.name; }); });
+  const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+  const teams = document.createElement('div'); teams.className = 'teamsum'; const tbl = document.createElement('div');
+  wrap.append(teams, tbl); renderLeaderboard(tbl, teams);
+  if (Room.phase === 'match'){ const tm = document.createElement('div'); tm.className = 'lbl2'; tm.textContent = 'TIME LEFT ' + fmtTime(Room.endAt - performance.now()); wrap.prepend(tm); }
+  $('board').replaceChildren(wrap);
 }
 setInterval(()=>{ if (G.online && G.paused && !$('pause').classList.contains('hidden')) renderBoard(); }, 1000);
 function updateTeamMenu(){
@@ -1521,7 +1912,7 @@ function updateTeamMenu(){
 }
 function toHome(){
   if (document.pointerLockElement) document.exitPointerLock();
-  G.state = 'home'; G.paused = false; G.online = false; clearGame();
+  G.state = 'home'; G.paused = false; G.online = false; clearGame(); clearMap();
   for (const t in G.preview){ const s = G.preview[t]; s.root.visible = true; s.root.position.x = s.homeX; s.root.rotation.y = s.homeX < 0 ? 0.25 : -0.25; if (s.W.id !== 'rifle') s.setWeapon('rifle'); }
   showOnly('home'); $('hud').classList.add('hidden');
   const h = (location.hash || '').replace('#', '').toUpperCase();
@@ -1561,7 +1952,7 @@ function clearGame(){
   G.bots = [];
   if (P.body){ P.body.root.removeFromParent(); if (P.body.drop) P.body.drop.w.removeFromParent(); P.body = null; }
 }
-function showOnly(id){ for (const o of ['home','menu','classmenu','pause']) $(o).classList.toggle('hidden', o !== id); $('hud').classList.toggle('hidden', id !== null); }
+function showOnly(id){ for (const o of ['home','lobby','results','menu','classmenu','pause']) $(o).classList.toggle('hidden', o !== id); $('hud').classList.toggle('hidden', id !== null); }
 function toMenu(){
   if (document.pointerLockElement) document.exitPointerLock();
   G.state = 'team'; G.paused = false; clearGame();
@@ -1616,7 +2007,20 @@ function frame(){
   const dt = Math.min(clock.getDelta(), 0.05);
   if (G.online) netTick(dt);
   for (const r of remotes.values()) r.update(dt);
-  if (G.state === 'home' || G.state === 'team' || G.state === 'class'){
+  if (G.online){
+    const now = performance.now();
+    if (Room.phase === 'countdown'){
+      const left = Math.ceil((Room.startAt - now)/1000);
+      if (left <= 0){ if (G.state === 'lobby') beginMatch(); else { Room.phase = 'match'; Room.endAt = now + Room.dur*1000; stats.clear(); G.score = { red:0, blue:0 }; } }
+      else if (G.state === 'lobby'){ $('countdown').textContent = left; $('countdown').classList.remove('hidden'); }
+    }
+    const tEl = $('timer');
+    if (Room.phase === 'match' && G.state === 'play'){ const ms = Room.endAt - now; tEl.textContent = fmtTime(ms); tEl.classList.toggle('low', ms < 30000); tEl.classList.remove('hidden'); }
+    else tEl.classList.add('hidden');
+    if (Room.phase === 'results' && now >= Room.resultsUntil){ if (G.state === 'results') backToLobby(); else { Room.phase = 'lobby'; if (G.state === 'lobby') renderLobby(); } }
+    if (G.state === 'results') $('rcount').textContent = `Back to the waiting room in ${Math.max(0, Math.ceil((Room.resultsUntil - now)/1000))}s`;
+  }
+  if (G.state === 'home' || G.state === 'lobby' || G.state === 'team' || G.state === 'class'){
     menuT += dt;
     if (G.state !== 'class'){ camera.position.set(Math.sin(menuT*0.2)*0.6, 1.35, 3.6); camera.lookAt(0, 1.05, 0); camera.fov = 45; }
     else { camera.position.set(-0.2 + Math.sin(menuT*0.2)*0.2, 1.3, 3.0); camera.lookAt(-0.55, 1.0, 0); camera.fov = 45; }
@@ -1628,7 +2032,7 @@ function frame(){
         if (s.W.id !== want) s.setWeapon(want);
         s.root.rotation.y = 1.15 + Math.sin(menuT*0.4)*0.2;
       }
-      const hot = G.state === 'class' || (G.state === 'team' && hoverTeam === s.team);
+      const hot = G.state === 'class' || (G.state === 'team' && hoverTeam === s.team) || (G.state === 'lobby' && G.team === s.team);
       s.ring.material.opacity = hot ? 1 : 0.45; s.ring.scale.setScalar(hot ? 1.15 : 1);
       s.pose(dt, { speed: 0, aim: !!(hot || s.forceAim), pitch: 0 });
     }
@@ -1649,6 +2053,7 @@ function frame(){
   if (!G.paused || G.online) for (let i=fx.length-1;i>=0;i--){ const f = fx[i]; f.life -= dt; if (f.life <= 0){ scene.remove(f.obj); f.obj.material.dispose(); fx.splice(i,1); } else f.update(f, f.life/f.max, dt); }
   renderer.clear();
   if (window.__vmDebugCam){ renderer.render(vmScene, window.__vmDebugCam); return; }
+  if (window.__sceneCam){ renderer.render(scene, window.__sceneCam); return; }
   renderer.render(scene, camera);
   if (G.state === 'play' && vm.visible && P.alive){ renderer.clearDepth(); renderer.render(vmScene, vmCam); }
 }
@@ -1681,8 +2086,8 @@ addEventListener('resize', ()=>{
     }
     buildPreview();
     $('loading').classList.add('hidden');
-    if (TEST){ G.team = TEST; P.nextCls = QS.get('cls') || 'rifle'; startGame(TEST); } else toHome();
-    window.__G = { THREE, Net, remotes, vmScene, vmCam, hurtPlayer, G, P, keys, mouse, camera, startGame, toMenu, toClassMenu, pause, resume, WEAPONS, vm, get vmBody(){ return vmBody; } };
+    if (TEST){ G.team = TEST; P.nextCls = QS.get('cls') || 'rifle'; if (QS.get('map')) buildMap(QS.get('map')); startGame(TEST); } else toHome();
+    window.__G = { THREE, Room, lobbyInfo, buildMap, MAPS, Net, remotes, vmScene, vmCam, hurtPlayer, G, P, keys, mouse, camera, startGame, toMenu, toClassMenu, pause, resume, WEAPONS, vm, get vmBody(){ return vmBody; } };
     window.DONE = 1;
   } catch (err){
     console.error(err); $('loadlbl').textContent = 'Could not load the game: ' + (err.message || err); $('loadlbl').style.color = 'var(--accent)'; $('loading').classList.remove('hidden');

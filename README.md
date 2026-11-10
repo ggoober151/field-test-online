@@ -4,8 +4,11 @@ A browser FPS prototype built with Three.js. Pick a team and a class (rifle, sho
 
 ## Playing online
 1. Open the site and enter your name.
-2. Press **Create room** and share the 5-letter room code (or use **Copy invite link** in the Tab menu).
+2. Press **Create room** and share the 5-letter room code (or use **Copy invite link**).
 3. Friends open the site, type the code and press **Join**.
+4. In the waiting room everyone picks a team and class; the host picks the map (Crossfire or Pillars).
+5. When every player presses **Ready up**, a 3-second countdown starts the match.
+6. Matches last 5 minutes. The leaderboard is in the Tab menu, and it is shown to everyone at the end before returning to the waiting room. Players who arrive mid-match can press **Join match**.
 
 The player who creates the room hosts it. If the host leaves, the room closes.
 
