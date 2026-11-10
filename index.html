@@ -289,14 +289,14 @@ const WEAPONS = {
   rifle: {
     id:'rifle', cls:'RIFLE', name:'AK-47', file:'ak47', desc:'Full-auto all-rounder',
     norm:{ rotY:0, scale:[1,1,1] }, hide:[],
-    auto:true, interval:0.1, mag:30, reserve:120, dmg:34, head:100, pellets:1, range:300,
+    auto:true, interval:0.1, mag:30, reserve:120, dmg:17, head:34, pellets:1, range:300,
     spreadHip:0.032, spreadAds:0.0015, recoil:[0.0075,0.0045], punch:[0.012,0.006], kick:[0.05,0.03],
     adsFov:52, vmAdsFov:48, adsSpeed:14, reload:2.1, reloadEmpty:2.6, move:1, impulse:3,
     pts:{ sight:V3(-0.003,0.2372,0.055), muzzle:V3(-0.003,0.18,0.49), butt:V3(0,0.15,-0.46), gripR:V3(-0.03,0.115,-0.235), gripL:V3(0.0,0.122,0.08) },
     hip:V3(0.13,-0.13,-0.42), ads:{ pos:V3(0,-0.004,-0.40), rot:V3(0.020,0,0) },
     vmBody:{ off:V3(0.13,-0.10,0.38), yaw:-0.7 },
     parts:{ mag:['mag','bullets'], bolt:'bolt', magDir:V3(0.02,-0.32,0.06), boltDir:V3(0,0,-0.07) },
-    stats:{ Damage:.45, 'Fire rate':.85, Range:.7, Mobility:.75 },
+    stats:{ Damage:.3, 'Fire rate':.85, Range:.7, Mobility:.75 },
   },
   shotgun: {
     id:'shotgun', cls:'SHOTGUN', name:'Remington 870', file:'r870', desc:'Pump-action, devastating up close',
@@ -1044,7 +1044,7 @@ function botShoot(bot, dist){
   let chance, dmgP, dmgB;
   if (bot.cls === 'shotgun'){ chance = dist < 6 ? 0.85 : dist < 12 ? 0.6 : dist < 22 ? 0.3 : 0.08; const k = clamp(1 - (dist-5)/25, 0.25, 1); dmgP = 65*k; dmgB = 100*k; }
   else if (bot.cls === 'sniper'){ chance = clamp(0.6 - dist/400, 0.3, 0.6); dmgP = 75; dmgB = 80; }
-  else { chance = 0.5 * clamp(1 - dist/90, 0.15, 1); dmgP = rand(10,16); dmgB = 25; }
+  else { chance = 0.5 * clamp(1 - dist/90, 0.15, 1); dmgP = rand(10,16); dmgB = 17; }
   if (isP){ const sp = Math.hypot(P.vel.x, P.vel.z); if (P.sliding > 0 || !P.onGround) chance *= 0.45; else if (sp > 5.5) chance *= 0.65; }
   const hit = Math.random() < chance;
   const pellets = bot.cls === 'shotgun' ? 5 : 1;
@@ -1062,7 +1062,7 @@ function botShoot(bot, dist){
   if (hit){
     const dir = V3().subVectors(tpos, from).normalize();
     if (isP) hurtPlayer(dmgP, bot, dir);
-    else { const head = bot.cls !== 'shotgun' && Math.random() < 0.15; t.damage(head ? (bot.cls === 'sniper' ? 200 : Math.max(dmgB, 70)) : dmgB, bot, head, tpos, dir, bot.W.impulse); puff(tpos, 0x8a1c1c, 0.25); }
+    else { const head = bot.cls !== 'shotgun' && Math.random() < 0.15; t.damage(head ? (bot.cls === 'sniper' ? 200 : bot.cls === 'rifle' ? 34 : Math.max(dmgB, 70)) : dmgB, bot, head, tpos, dir, bot.W.impulse); puff(tpos, 0x8a1c1c, 0.25); }
   }
 }
 
