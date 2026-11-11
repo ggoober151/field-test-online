@@ -12,7 +12,7 @@ A browser FPS prototype built with Three.js. Pick a team and a class (rifle, sho
 
 The player who creates the room hosts it. If the host leaves, the room closes.
 
-Online play connects players directly (peer-to-peer) using the free PeerJS matchmaking server. Some strict networks (certain office, school or mobile networks) can block direct connections.
+Online play sends game messages through a free public MQTT server (EMQX, with HiveMQ as a backup) over secure WebSockets, so players on different home networks and phone connections can reach each other. Very strict networks (some schools and offices) may block the server's port.
 
 ## Practice
 Press **Practice vs bots**, pick a map (Open Field, Crossfire or Hege's Crib), a team and a class. Bots find their way around walls, use doorways and only shoot when they can see you.
