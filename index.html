@@ -418,25 +418,20 @@ const MAPS = {
       B(27,-30,1.4,1.4,1.4,0,'crate');
     },
   },
-  pillars: {
-    name:'PILLARS', desc:'Open courtyard of pillars between two raised decks', half:34,
-    floor:['#7d8794','rgba(30,40,55,.4)'], kinds:{ block:'#9aa6b4', wall:'#8c98a6', low:'#b3bdc8', crate:'#6f7f92', pillar:'#c4ccd6' },
-    spawns:{ red:[0,-30,18,4], blue:[0,30,18,4] },
-    build(B, S){
-      for (const x of [-16,-8,0,8,16]) for (const z of [-8,8]) B(x,z,1.4,1.4,5,0,'pillar',false);
-      B(0,0,6,1,1.2,0,'low',false); B(0,0,1,6,1.2,0,'low',false);
-      B(0,-22,24,5,2,0,'block'); S(0,-19.5,'z',1,5,4,0.5,0.7); S(0,-24.5,'z',-1,5,4,0.5,0.7);
-      S(-12,-22,'x',-1,3,4,0.5,0.7); S(12,-22,'x',1,3,4,0.5,0.7);
-      B(-6,-20.2,3,0.4,1,2,'low'); B(6,-20.2,3,0.4,1,2,'low');
-      B(-24,-6,1,5,1.2,0,'low'); B(-26,-14,4,4,2.4,0,'block');
-      B(-12,-14,1.4,1.4,1.4,0,'crate'); B(10,-14,1.4,1.4,1.4,0,'crate'); B(24,-15,1.4,1.4,1.4,0,'crate');
-    },
+  hege: {
+    name:"HEGE'S CRIB", desc:'A walled yard with a house, ladders to the roof and a car up top', half:13.6, glb:'models/hege.glb',
+    bounds:[-8.6, 8.6, -13.0, 12.8],
+    floor:['#71795f','rgba(0,0,0,0)'], kinds:{},
+    spawns:{ red:[-3.52,11.02,3,1.6], blue:[2.73,-9.67,3,1.6] },   // replaced at load by the red/blue boxes in the model
+    mini:[[8.83,-0.06,0.2,26.6,2.14,0],[-8.88,-0.06,0.2,26.6,2.14,0],[-0.02,13.08,18.02,0.2,2.14,0],[-0.02,-13.28,18.02,0.2,2.14,0],[0,0,10.28,12.82,0.06,0],[-5.06,0,0.15,12.94,3.56,0],[5.1,0,0.15,12.9,3.56,0],[-2.85,6.44,4.56,0.15,3.56,0],[3.09,6.44,4.06,0.15,3.56,0],[3.09,-6.35,4.06,0.15,3.56,0],[-2.85,-6.36,4.56,0.15,3.56,0],[-1.93,3.47,1.47,1.54,1.59,0],[2.55,-3.46,1.47,1.54,1.57,0],[0.95,0.68,3.08,1.54,1.85,0],[-3.94,-3.46,2.25,1.76,1.88,0],[-7.35,9.94,2.11,2.04,9.4,0],[6.59,-9.65,2.11,2.04,9.3,0],[0.27,-0.22,3.07,5.97,1.51,3.46]],
+    build(){},
   },
 };
 const MAP_IDS = Object.keys(MAPS);
 // collect a map's boxes (mirrored through the centre for fairness) as plain data
 function mapBoxes(id){
   const M = MAPS[id], out = [];
+  if (M.mini) return M.mini.map(([x, z, w, d, h, y]) => ({ x, z, w, d, h, y, kind:'wall' }));
   const B = (x, z, w, d, h, y=0, kind='wall', mirror=true) => {
     out.push({ x, z, w, d, h, y, kind });
     if (mirror && (x !== 0 || z !== 0)) out.push({ x:-x, z:-z, w, d, h, y, kind });
@@ -454,33 +449,62 @@ function mapBoxes(id){
            { x:-H-0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' }, { x:H+0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' });
   return out;
 }
-let CUR_MAP = null, COL = [], mapGroup = null, mapMeshes = [];
-function buildMap(id){
+let CUR_MAP = null, COL = [], LADDERS = [], mapGroup = null, mapMeshes = [];
+const MAP_CACHE = {};
+function preloadMap(id){
+  const M = MAPS[id]; if (!M?.glb) return Promise.resolve(null);
+  return MAP_CACHE[id] ||= loader.loadAsync(M.glb).then(g => g.scene).catch(e => { delete MAP_CACHE[id]; throw e; });
+}
+function addCollider(bb){ COL.push({ minX:bb.min.x, maxX:bb.max.x, minZ:bb.min.z, maxZ:bb.max.z, minY:bb.min.y, maxY:bb.max.y }); }
+async function buildMap(id){
   clearMap();
   const M = MAPS[id]; if (!M) return;
-  CUR_MAP = { id, ...M };
-  mapGroup = new THREE.Group(); scene.add(mapGroup);
-  const ft = gridTex(M.floor[0], M.floor[1]); ft.repeat.set(M.half, M.half);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(M.half*2, M.half*2), new THREE.MeshStandardMaterial({ map: ft, roughness: .95 }));
-  floor.rotation.x = -Math.PI/2; floor.position.y = 0.006; floor.receiveShadow = true; mapGroup.add(floor);
-  const mats = {};
-  for (const k in M.kinds) mats[k] = new THREE.MeshStandardMaterial({ map: gridTex(M.kinds[k], 'rgba(0,0,0,.18)'), roughness: .85 });
-  for (const b of mapBoxes(id)){
-    const m = new THREE.Mesh(boxGeo(b.w, b.h, b.d), mats[b.kind] || mats.wall);
-    m.position.set(b.x, b.y + b.h/2, b.z); m.castShadow = m.receiveShadow = true;
-    mapGroup.add(m); mapMeshes.push(m);
-    COL.push({ minX:b.x-b.w/2, maxX:b.x+b.w/2, minZ:b.z-b.d/2, maxZ:b.z+b.d/2, minY:b.y, maxY:b.y+b.h });
+  CUR_MAP = { id, ...M, spawns: { ...M.spawns } };
+  const group = mapGroup = new THREE.Group(); scene.add(group);
+  for (const p of spawnPads) p.visible = false;
+  if (M.glb){
+    // a model built in the three.js editor: every mesh becomes a box collider; pure red/blue boxes mark the spawns
+    const tpl = await preloadMap(id);
+    if (mapGroup !== group) return;            // a newer map replaced this one while loading
+    const model = tpl.clone(true); group.add(model); model.updateMatrixWorld(true);
+    const marks = {};
+    model.traverse(o => {
+      if (!o.isMesh) return;
+      const m = o.material, c = m.color || { r:0, g:0, b:0 };
+      if (!m.map && c.r > 0.9 && c.g < 0.15 && c.b < 0.15){ marks.red = o; return; }
+      if (!m.map && c.b > 0.9 && c.r < 0.15 && c.g < 0.15){ marks.blue = o; return; }
+      let isLadder = false; for (let q = o; q && q !== model; q = q.parent) if (/ladder/i.test(q.name)) isLadder = true;
+      if (isLadder){ o.castShadow = o.receiveShadow = true; const bb = new THREE.Box3().setFromObject(o); LADDERS.push({ minX:bb.min.x, maxX:bb.max.x, minZ:bb.min.z, maxZ:bb.max.z, minY:Math.max(0, bb.min.y), maxY:bb.max.y }); return; }
+      o.castShadow = o.receiveShadow = true; o.frustumCulled = true;
+      mapMeshes.push(o); addCollider(new THREE.Box3().setFromObject(o));
+    });
+    for (const team in marks){
+      const o = marks[team]; o.visible = false;
+      const bb = new THREE.Box3().setFromObject(o), c = bb.getCenter(V3());
+      CUR_MAP.spawns[team] = [c.x, c.z, Math.max(3, bb.max.x - bb.min.x), Math.max(1.6, bb.max.z - bb.min.z)];
+    }
+  } else {
+    const ft = gridTex(M.floor[0], M.floor[1]); ft.repeat.set(M.half, M.half);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(M.half*2, M.half*2), new THREE.MeshStandardMaterial({ map: ft, roughness: .95 }));
+    floor.rotation.x = -Math.PI/2; floor.position.y = 0.006; floor.receiveShadow = true; group.add(floor);
+    const mats = {};
+    for (const k in M.kinds) mats[k] = new THREE.MeshStandardMaterial({ map: gridTex(M.kinds[k], 'rgba(0,0,0,.18)'), roughness: .85 });
+    for (const b of mapBoxes(id)){
+      const m = new THREE.Mesh(boxGeo(b.w, b.h, b.d), mats[b.kind] || mats.wall);
+      m.position.set(b.x, b.y + b.h/2, b.z); m.castShadow = m.receiveShadow = true;
+      group.add(m); mapMeshes.push(m);
+      COL.push({ minX:b.x-b.w/2, maxX:b.x+b.w/2, minZ:b.z-b.d/2, maxZ:b.z+b.d/2, minY:b.y, maxY:b.y+b.h });
+    }
   }
   for (const team of ['red','blue']){
-    const [x, z, w, d] = M.spawns[team];
+    const [x, z, w, d] = CUR_MAP.spawns[team];
     const pad = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: TEAM_COL[team], transparent:true, opacity:.22 }));
-    pad.rotation.x = -Math.PI/2; pad.position.set(x, 0.012, z); mapGroup.add(pad);
+    pad.rotation.x = -Math.PI/2; pad.position.set(x, 0.06, z); group.add(pad);
   }
-  for (const p of spawnPads) p.visible = false;
 }
 function clearMap(){
-  if (mapGroup){ mapGroup.traverse(o => { if (o.isMesh){ o.geometry.dispose(); } }); mapGroup.removeFromParent(); }
-  mapGroup = null; mapMeshes = []; COL = []; CUR_MAP = null;
+  if (mapGroup){ if (!CUR_MAP?.glb) mapGroup.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); mapGroup.removeFromParent(); }
+  mapGroup = null; mapMeshes = []; COL = []; LADDERS = []; CUR_MAP = null;
   for (const p of spawnPads) p.visible = true;
 }
 const STEP = 0.55, PR = 0.35;
@@ -1073,7 +1097,7 @@ function spawnPlayer(){
   if (CUR_MAP){ const [sx, sz, sw, sd] = CUR_MAP.spawns[G.team]; P.pos.set(sx + rand(-sw/2+1, sw/2-1), 0, sz + rand(-sd/2+0.8, sd/2-0.8)); }
   else P.pos.set(rand(-3,3), 0, z + rand(-2,2));
   P.vel.set(0,0,0);
-  P.yaw = G.team === 'red' ? Math.PI : 0; P.pitch = 0;
+  P.yaw = CUR_MAP ? Math.atan2(P.pos.x, P.pos.z) : (G.team === 'red' ? Math.PI : 0); P.pitch = 0;
   P.hp = 100; P.alive = true; P.ammo = P.W.mag; P.reserve = P.W.reserve; P.reloadT = 0; P.shotgunReload = false; P.cycleT = 0;
   P.sliding = 0; P.eye = 1.62; P.ads = 0;
   if (P.body){ if (P.body.rag) P.body.endRagdoll(); if (P.body.W.id !== P.cls) P.body.setWeapon(P.cls); }
@@ -1218,7 +1242,16 @@ function updatePlayer(dt){
     P.vel.z = damp(P.vel.z, wish.z*speed, accel, dt);
   }
   if (P.jumpReq){ P.jumpReq = false; if (P.onGround){ P.vel.y = 5.8; P.onGround = false; P.sliding = 0; } }
-  P.vel.y -= 18*dt;
+  // ladders: hold W (or Space) to climb, S to go down, let go to hang on
+  const LG = 0.5;
+  const lad = CUR_MAP && LADDERS.find(l => P.pos.x > l.minX - LG && P.pos.x < l.maxX + LG && P.pos.z > l.minZ - LG && P.pos.z < l.maxZ + LG && P.pos.y > l.minY - 0.3 && P.pos.y < l.maxY - 0.15);
+  P.climbing = false;
+  if (lad && P.sliding <= 0 && (keys.KeyW || keys.KeyS || !P.onGround)){
+    P.climbing = true;
+    P.vel.y = keys.KeyW || keys.Space ? 3.2 : keys.KeyS ? -3.2 : 0;
+    if (keys.KeyS && P.onGround) P.vel.y = 0;
+    P.vel.x *= 0.5; P.vel.z *= 0.5;
+  } else P.vel.y -= 18*dt;
   const wasGround = P.onGround;
   P.pos.addScaledVector(P.vel, dt);
   if (CUR_MAP){
@@ -1229,7 +1262,8 @@ function updatePlayer(dt){
     else P.onGround = false;
     // ceilings
     for (const b of COL) if (P.vel.y > 0 && P.pos.x > b.minX && P.pos.x < b.maxX && P.pos.z > b.minZ && P.pos.z < b.maxZ && P.pos.y + 1.75 > b.minY && P.pos.y < b.minY){ P.pos.y = b.minY - 1.75; P.vel.y = 0; }
-    const lim = CUR_MAP.half - PR; P.pos.x = clamp(P.pos.x, -lim, lim); P.pos.z = clamp(P.pos.z, -lim, lim);
+    const bd = CUR_MAP.bounds || [-CUR_MAP.half, CUR_MAP.half, -CUR_MAP.half, CUR_MAP.half];
+    P.pos.x = clamp(P.pos.x, bd[0] + PR, bd[1] - PR); P.pos.z = clamp(P.pos.z, bd[2] + PR, bd[3] - PR);
   } else {
     if (P.pos.y <= 0){ P.pos.y = 0; P.vel.y = 0; P.onGround = true; } else P.onGround = P.pos.y <= 0.001;
     P.pos.x = clamp(P.pos.x, -HALF+1, HALF-1); P.pos.z = clamp(P.pos.z, -HALF+1, HALF-1);
@@ -1504,11 +1538,16 @@ function onStart(msg){
   Room.startAt = performance.now() + clamp(+msg.delay || 3, 0, 10)*1000;
   if (G.state === 'lobby') renderLobby();
 }
-function beginMatch(late=false){
+async function beginMatch(late=false){
+  if (Room.loading) return;
   if (!late){ Room.phase = 'match'; Room.endAt = performance.now() + Room.dur*1000; stats.clear(); G.score = { red:0, blue:0 }; }
   if (!G.team){ const n = teamCounts(); G.team = n.red <= n.blue ? 'red' : 'blue'; }
-  $('countdown').classList.add('hidden');
-  buildMap(Room.map);
+  Room.loading = true;
+  if (MAPS[Room.map].glb && !MAP_CACHE[Room.map]){ $('countdown').textContent = 'LOADING MAP'; $('countdown').classList.remove('hidden'); }
+  try { await buildMap(Room.map); }
+  catch (e){ console.error(e); toast('Could not load the map. Check your connection.', 5000); }
+  finally { Room.loading = false; $('countdown').classList.add('hidden'); }
+  if (!G.online || G.state !== 'lobby' || Room.phase !== 'match') return;
   startGame(G.team);
 }
 function hostEnd(){ const msg = { t:'end', score: G.score, stats: [...stats] }; Net.send(msg); onEnd(msg); }
@@ -1562,6 +1601,7 @@ function buildLobbyStatic(){
 }
 function renderLobby(){
   if (G.state !== 'lobby') return;
+  if (MAPS[Room.map]?.glb) preloadMap(Room.map).catch(()=>{});
   $('lcode').textContent = Net.code || '';
   const now = performance.now();
   const ps = lobbyPlayers();
@@ -2086,7 +2126,7 @@ addEventListener('resize', ()=>{
     }
     buildPreview();
     $('loading').classList.add('hidden');
-    if (TEST){ G.team = TEST; P.nextCls = QS.get('cls') || 'rifle'; if (QS.get('map')) buildMap(QS.get('map')); startGame(TEST); } else toHome();
+    if (TEST){ G.team = TEST; P.nextCls = QS.get('cls') || 'rifle'; if (QS.get('map')) await buildMap(QS.get('map')); startGame(TEST); } else toHome();
     window.__G = { THREE, Room, lobbyInfo, buildMap, MAPS, Net, remotes, vmScene, vmCam, hurtPlayer, G, P, keys, mouse, camera, startGame, toMenu, toClassMenu, pause, resume, WEAPONS, vm, get vmBody(){ return vmBody; } };
     window.DONE = 1;
   } catch (err){
