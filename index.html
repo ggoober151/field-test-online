@@ -49,6 +49,12 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 #pause .lbl{font-size:12px;letter-spacing:.2em;color:var(--dim)}
 #pause .actions{display:flex;flex-wrap:wrap;gap:10px}
 #pause .err{color:var(--accent);font-size:12px}
+.sensrow{display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:12px;letter-spacing:.15em;color:var(--dim)}
+.sensrow input{flex:1 1 180px;accent-color:var(--accent)}
+.sensrow b{color:var(--text);min-width:3.2em;font-variant-numeric:tabular-nums}
+.skinrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.skinrow img{width:44px;height:44px;object-fit:cover;border:1px solid var(--line)}
+.note{font-size:11px;color:var(--dim)}
 #pause .card{padding:12px 14px}
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:5}
@@ -159,6 +165,13 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
     <h1>FIELD TEST <span>//</span> ONLINE</h1>
     <div class="sub">Create a room and share the code, or join a friend's room</div>
     <label class="field">YOUR NAME<input id="pname" maxlength="16" autocomplete="off" spellcheck="false"></label>
+    <div class="skinrow">
+      <button class="btn" id="skinbtn">UPLOAD GUN SKIN</button>
+      <img id="skinprev" class="hidden" alt="Your gun skin">
+      <button class="btn hidden" id="skinclear">REMOVE SKIN</button>
+      <input type="file" id="skinfile" accept="image/png,image/jpeg,image/webp" class="hidden">
+      <span class="note">A PNG or JPG stretched over your guns. Only you see it.</span>
+    </div>
     <div class="hrow">
       <button class="btn primary" id="createbtn">CREATE ROOM</button>
       <label class="field">ROOM CODE<input id="joincode" maxlength="5" autocomplete="off" spellcheck="false" placeholder="ABCDE"></label>
@@ -215,6 +228,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
       <span><kbd>R</kbd> reload</span><span><kbd>Shift</kbd> sprint</span><span><kbd>Ctrl</kbd>/<kbd>C</kbd> slide</span><span><kbd>Space</kbd> jump</span><span><kbd>Tab</kbd> menu</span><span><kbd>V</kbd> 3rd person</span>
     </div></div>
     <div class="row"><label class="chk"><input type="checkbox" id="fs" checked> Fullscreen (lets Ctrl+W slide without closing the tab)</label></div>
+    <div class="row" id="pmaprow"><span class="lbl2">PRACTICE MAP</span><div class="seg" id="pmap" style="flex:1"><button data-map="open" class="on">OPEN FIELD</button><button data-map="crossfire">CROSSFIRE</button><button data-map="hege">HEGE'S CRIB</button></div></div>
     <div class="row"><button class="btn" id="teamback">&larr; LEAVE</button></div>
   </div>
 </div>
@@ -231,6 +245,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 <div id="pause" class="overlay hidden">
   <div class="wrap">
     <h2 id="pausetitle">PAUSED</h2>
+    <label class="sensrow">MOUSE SENSITIVITY<input type="range" id="sens" min="0.2" max="3" step="0.05"><b id="sensval">1.00</b></label>
     <div class="hrow hidden" id="roominfo"><div><div class="lbl">ROOM CODE</div><div class="code" id="roomcode"></div></div><button class="btn" id="copylink">COPY INVITE LINK</button></div>
     <div class="hidden" id="board"></div>
     <div class="lbl" id="pauselbl">CLASS &middot; CHANGES APPLY ON YOUR NEXT SPAWN</div>
@@ -419,7 +434,7 @@ const MAPS = {
     },
   },
   hege: {
-    name:"HEGE'S CRIB", desc:'A walled yard with a house, ladders to the roof and a car up top', half:13.6, glb:'models/hege.glb',
+    name:"HEGE'S CRIB", desc:'A walled yard with a house, ladders up to the roof and a car on top', half:13.6, glb:'models/hege.glb',
     bounds:[-8.6, 8.6, -13.0, 12.8],
     floor:['#71795f','rgba(0,0,0,0)'], kinds:{},
     spawns:{ red:[-3.52,11.02,3,1.6], blue:[2.73,-9.67,3,1.6] },   // replaced at load by the red/blue boxes in the model
@@ -449,11 +464,41 @@ function mapBoxes(id){
            { x:-H-0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' }, { x:H+0.5, z:0, w:1, d:2*H, h:5, y:0, kind:'wall' });
   return out;
 }
-let CUR_MAP = null, COL = [], LADDERS = [], mapGroup = null, mapMeshes = [];
+let CUR_MAP = null, COL = [], RAMPS = [], mapGroup = null, mapMeshes = [];
 const MAP_CACHE = {};
 function preloadMap(id){
   const M = MAPS[id]; if (!M?.glb) return Promise.resolve(null);
   return MAP_CACHE[id] ||= loader.loadAsync(M.glb).then(g => g.scene).catch(e => { delete MAP_CACHE[id]; throw e; });
+}
+// A slanted ladder becomes an invisible ramp: find its long axis (PCA), then fit height = a + b*s along it
+function rampFromMesh(o){
+  o.updateMatrixWorld(true);
+  const pos = o.geometry.attributes.position, v = V3(), pts = [];
+  const step = Math.max(1, Math.floor(pos.count / 4000));
+  for (let i=0; i<pos.count; i+=step){ v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld); pts.push(v.clone()); }
+  if (pts.length < 8) return null;
+  const m = V3(); for (const p of pts) m.add(p); m.multiplyScalar(1/pts.length);
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  for (const p of pts){ const d = [p.x-m.x, p.y-m.y, p.z-m.z]; for (let a=0;a<3;a++) for (let c=0;c<3;c++) C[a][c] += d[a]*d[c]; }
+  let e = [0.3, 0.9, 0.2];
+  for (let k=0; k<60; k++){ const n = [0,1,2].map(a => C[a][0]*e[0] + C[a][1]*e[1] + C[a][2]*e[2]); const l = Math.hypot(...n) || 1; e = n.map(x => x/l); }
+  if (e[1] < 0) e = e.map(x => -x);
+  const hl = Math.hypot(e[0], e[2]); if (hl < 0.1) return null;     // vertical ladder: nothing to walk on
+  const h = { x: e[0]/hl, z: e[2]/hl }, w = { x: -h.z, z: h.x };
+  let smin = 1e9, smax = -1e9, tmin = 1e9, tmax = -1e9, ymax = -1e9, Ss = 0, Sy = 0, Sss = 0, Ssy = 0;
+  for (const p of pts){
+    const dx = p.x - m.x, dz = p.z - m.z, sv = dx*h.x + dz*h.z, tv = dx*w.x + dz*w.z;
+    smin = Math.min(smin, sv); smax = Math.max(smax, sv); tmin = Math.min(tmin, tv); tmax = Math.max(tmax, tv); ymax = Math.max(ymax, p.y);
+    Ss += sv; Sy += p.y; Sss += sv*sv; Ssy += sv*p.y;
+  }
+  const n = pts.length, b = (n*Ssy - Ss*Sy) / Math.max(1e-6, n*Sss - Ss*Ss), a = (Sy - b*Ss)/n;
+  return { mx:m.x, mz:m.z, h, w, a, b, smin, smax, tmin, tmax, ymax };
+}
+function rampHeight(r, x, z){
+  const dx = x - r.mx, dz = z - r.mz, sv = dx*r.h.x + dz*r.h.z, tv = dx*r.w.x + dz*r.w.z;
+  if (sv < r.smin || sv > r.smax + 0.9 || tv < r.tmin - 0.1 || tv > r.tmax + 0.1) return null;
+  if (sv > r.smax) return r.ymax;                       // small flat landing at the top so players can turn onto the roof
+  return clamp(r.a + r.b*sv + 0.06, 0, r.ymax);
 }
 function addCollider(bb){ COL.push({ minX:bb.min.x, maxX:bb.max.x, minZ:bb.min.z, maxZ:bb.max.z, minY:bb.min.y, maxY:bb.max.y }); }
 async function buildMap(id){
@@ -474,7 +519,7 @@ async function buildMap(id){
       if (!m.map && c.r > 0.9 && c.g < 0.15 && c.b < 0.15){ marks.red = o; return; }
       if (!m.map && c.b > 0.9 && c.r < 0.15 && c.g < 0.15){ marks.blue = o; return; }
       let isLadder = false; for (let q = o; q && q !== model; q = q.parent) if (/ladder/i.test(q.name)) isLadder = true;
-      if (isLadder){ o.castShadow = o.receiveShadow = true; const bb = new THREE.Box3().setFromObject(o); LADDERS.push({ minX:bb.min.x, maxX:bb.max.x, minZ:bb.min.z, maxZ:bb.max.z, minY:Math.max(0, bb.min.y), maxY:bb.max.y }); return; }
+      if (isLadder){ o.castShadow = o.receiveShadow = true; const r = rampFromMesh(o); if (r) RAMPS.push(r); return; }
       o.castShadow = o.receiveShadow = true; o.frustumCulled = true;
       mapMeshes.push(o); addCollider(new THREE.Box3().setFromObject(o));
     });
@@ -501,16 +546,18 @@ async function buildMap(id){
     const pad = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: TEAM_COL[team], transparent:true, opacity:.22 }));
     pad.rotation.x = -Math.PI/2; pad.position.set(x, 0.06, z); group.add(pad);
   }
+  if (!G.online) buildNav();     // only practice bots need it
 }
 function clearMap(){
   if (mapGroup){ if (!CUR_MAP?.glb) mapGroup.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); mapGroup.removeFromParent(); }
-  mapGroup = null; mapMeshes = []; COL = []; LADDERS = []; CUR_MAP = null;
+  mapGroup = null; mapMeshes = []; COL = []; RAMPS = []; CUR_MAP = null; NAV = null;
   for (const p of spawnPads) p.visible = true;
 }
 const STEP = 0.55, PR = 0.35;
 function groundAt(x, z, feet){
   let g = 0;
   for (const b of COL) if (x+PR*0.7 > b.minX && x-PR*0.7 < b.maxX && z+PR*0.7 > b.minZ && z-PR*0.7 < b.maxZ && b.maxY <= feet + STEP && b.maxY > g) g = b.maxY;
+  for (const r of RAMPS){ const y = rampHeight(r, x, z); if (y !== null && y <= feet + 1.0 && y > g) g = y; }   // ramps: steep, so a bigger step-up
   return g;
 }
 // push a standing player (feet at y, height h) out of every box it overlaps
@@ -531,6 +578,116 @@ function collideMap(pos, vel, h){
     const vn = vel.x*dx + vel.z*dz; if (vn < 0){ vel.x -= vn*dx; vel.z -= vn*dz; }
   }
 }
+
+// ---------- Bot navigation: walkable grid, A* paths, line of sight against map boxes ----------
+let NAV = null;
+const NAV_CS = 0.5;
+function navSurface(x, z){
+  // the lowest floor here with head room (so a house interior wins over its roof)
+  const cands = [0];
+  for (const b of COL) if (x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ && b.maxY < 12) cands.push(b.maxY);
+  cands.sort((a, c) => a - c);
+  for (const c of cands){
+    let ok = true;
+    for (const b of COL){
+      if (x > b.minX - 0.3 && x < b.maxX + 0.3 && z > b.minZ - 0.3 && z < b.maxZ + 0.3 && b.minY < c + 1.7 && b.maxY > c + STEP){ ok = false; break; }
+    }
+    if (ok) return c;
+  }
+  return null;
+}
+function buildNav(){
+  if (!CUR_MAP){ NAV = null; return; }
+  const bd = CUR_MAP.bounds || [-CUR_MAP.half, CUR_MAP.half, -CUR_MAP.half, CUR_MAP.half];
+  const nx = Math.ceil((bd[1]-bd[0])/NAV_CS), nz = Math.ceil((bd[3]-bd[2])/NAV_CS);
+  const h = new Float32Array(nx*nz), walk = new Uint8Array(nx*nz);
+  for (let j=0; j<nz; j++) for (let i=0; i<nx; i++){
+    const x = bd[0] + (i+0.5)*NAV_CS, z = bd[2] + (j+0.5)*NAV_CS;
+    if (x < bd[0]+0.45 || x > bd[1]-0.45 || z < bd[2]+0.45 || z > bd[3]-0.45) continue;
+    const c = navSurface(x, z);
+    if (c !== null){ h[j*nx+i] = c; walk[j*nx+i] = 1; }
+  }
+  NAV = { x0: bd[0], z0: bd[2], nx, nz, h, walk };
+}
+function navCell(x, z){ return [clamp(Math.floor((x - NAV.x0)/NAV_CS), 0, NAV.nx-1), clamp(Math.floor((z - NAV.z0)/NAV_CS), 0, NAV.nz-1)]; }
+function navNearest(i, j){
+  if (NAV.walk[j*NAV.nx+i]) return [i, j];
+  for (let r=1; r<10; r++) for (let dj=-r; dj<=r; dj++) for (let di=-r; di<=r; di++){
+    if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+    const a = i+di, c = j+dj; if (a < 0 || c < 0 || a >= NAV.nx || c >= NAV.nz) continue;
+    if (NAV.walk[c*NAV.nx+a]) return [a, c];
+  }
+  return null;
+}
+function navPath(sx, sz, gx, gz){
+  if (!NAV) return null;
+  const { nx, nz, h, walk } = NAV;
+  const s = navNearest(...navCell(sx, sz)), g = navNearest(...navCell(gx, gz)); if (!s || !g) return null;
+  const S = s[1]*nx+s[0], Gi = g[1]*nx+g[0], N = nx*nz;
+  const gs = new Float32Array(N).fill(Infinity), par = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+  const heap = []; const push = (f, n) => { heap.push([f, n]); let k = heap.length-1; while (k > 0){ const q = (k-1)>>1; if (heap[q][0] <= heap[k][0]) break; [heap[q], heap[k]] = [heap[k], heap[q]]; k = q; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length){ heap[0] = last; let k = 0; for(;;){ const l = 2*k+1, r = l+1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+  const hx = Gi % nx, hz = (Gi / nx) | 0, heur = n => Math.hypot((n % nx) - hx, ((n / nx) | 0) - hz);
+  gs[S] = 0; push(heur(S), S);
+  let iter = 0;
+  while (heap.length && iter++ < 40000){
+    const [, n] = pop(); if (closed[n]) continue; closed[n] = 1;
+    if (n === Gi) break;
+    const ci = n % nx, cj = (n / nx) | 0;
+    for (let dj=-1; dj<=1; dj++) for (let di=-1; di<=1; di++){
+      if (!di && !dj) continue;
+      const a = ci+di, c = cj+dj; if (a < 0 || c < 0 || a >= nx || c >= nz) continue;
+      const m = c*nx+a; if (!walk[m] || closed[m]) continue;
+      if (Math.abs(h[m] - h[n]) > STEP) continue;
+      if (di && dj && (!walk[cj*nx+a] || !walk[c*nx+ci])) continue;
+      const ng = gs[n] + (di && dj ? 1.414 : 1);
+      if (ng < gs[m]){ gs[m] = ng; par[m] = n; push(ng + heur(m), m); }
+    }
+  }
+  if (par[Gi] === -1 && Gi !== S) return null;
+  const out = []; for (let n = Gi; n !== -1 && n !== S; n = par[n]) out.push([NAV.x0 + ((n % nx)+0.5)*NAV_CS, NAV.z0 + (((n / nx)|0)+0.5)*NAV_CS]);
+  return out.reverse();
+}
+function navRandomPoint(){
+  if (!NAV) return null;
+  for (let k=0; k<200; k++){ const i = Math.random()*NAV.nx|0, j = Math.random()*NAV.nz|0; if (NAV.walk[j*NAV.nx+i] && NAV.h[j*NAV.nx+i] < 0.6) return [NAV.x0 + (i+0.5)*NAV_CS, NAV.z0 + (j+0.5)*NAV_CS]; }
+  return null;
+}
+// nearest hit of a segment against the map's boxes (slab test); returns distance or Infinity
+function rayBoxes(o, d, maxD){
+  let best = maxD;
+  for (const b of COL){
+    let t0 = 0, t1 = best;
+    for (const [oa, da, mn, mx] of [[o.x, d.x, b.minX, b.maxX], [o.y, d.y, b.minY, b.maxY], [o.z, d.z, b.minZ, b.maxZ]]){
+      if (Math.abs(da) < 1e-9){ if (oa < mn || oa > mx){ t0 = Infinity; break; } continue; }
+      let ta = (mn - oa)/da, tb = (mx - oa)/da; if (ta > tb) [ta, tb] = [tb, ta];
+      t0 = Math.max(t0, ta); t1 = Math.min(t1, tb); if (t0 > t1) break;
+    }
+    if (t0 <= t1 && t0 < best) best = t0;
+  }
+  return best < maxD ? best : Infinity;
+}
+const _lo = V3(), _ld = V3();
+function lineBlocked(a, b){
+  if (!CUR_MAP) return false;
+  _ld.subVectors(b, a); const L = _ld.length(); if (L < 1e-4) return false; _ld.divideScalar(L);
+  return rayBoxes(a, _ld, L - 0.05) !== Infinity;
+}
+// shared body physics for bots on a map
+function moveBody(o, wish, dt){
+  o.vel.x = damp(o.vel.x, wish.x, 10, dt); o.vel.z = damp(o.vel.z, wish.z, 10, dt);
+  o.vel.y -= 18*dt;
+  const was = o.onGround;
+  o.pos.addScaledVector(o.vel, dt);
+  collideMap(o.pos, o.vel, 1.75);
+  const g = groundAt(o.pos.x, o.pos.z, Math.max(o.pos.y, o.pos.y - o.vel.y*dt));
+  if (o.pos.y <= g){ o.pos.y = g; o.vel.y = Math.max(0, o.vel.y); o.onGround = true; }
+  else if (was && o.vel.y <= 0 && o.pos.y - g < STEP){ o.pos.y = g; o.vel.y = 0; o.onGround = true; }
+  else o.onGround = false;
+  const bd = CUR_MAP.bounds || [-CUR_MAP.half, CUR_MAP.half, -CUR_MAP.half, CUR_MAP.half];
+  o.pos.x = clamp(o.pos.x, bd[0] + PR, bd[1] - PR); o.pos.z = clamp(o.pos.z, bd[2] + PR, bd[3] - PR);
+}
+
 function drawMinimap(canvas, id){
   const M = MAPS[id], g = canvas.getContext('2d'), W = canvas.width, Hh = canvas.height, sc = W / (M.half*2 + 4);
   g.fillStyle = M.floor[0]; g.fillRect(0, 0, W, Hh);
@@ -933,6 +1090,7 @@ function equipViewmodel(){
   vmWeapon.traverse(o=>{ if (o.isMesh){ o.castShadow = false; o.receiveShadow = false; } });
   vm.add(vmWeapon);
   vmFlash = makeFlash(); vmFlash.position.copy(W.pts.muzzle).add(V3(0,0,0.05)); vmWeapon.add(vmFlash);
+  applySkin(vmWeapon);
   if (!vmBody || vmBody.team !== G.team){
     if (vmBody) vmBody.root.removeFromParent();
     vmBody = new Soldier(G.team, null, { viewmodel:true }); vm.add(vmBody.root);
@@ -978,8 +1136,9 @@ class Bot {
   spawn(){
     if (this.s.rag) this.s.endRagdoll();
     const z = this.team === 'red' ? -45 : 45;
-    this.pos.set(rand(-5,5), 0, z + rand(-4,4));
-    this.yaw = this.team === 'red' ? Math.PI : 0; this.pitch = 0;
+    if (CUR_MAP){ const [sx, sz, sw, sd] = CUR_MAP.spawns[this.team]; this.pos.set(sx + rand(-sw/2+0.6, sw/2-0.6), 0, sz + rand(-sd/2+0.5, sd/2-0.5)); this.yaw = Math.atan2(this.pos.x, this.pos.z); }
+    else { this.pos.set(rand(-5,5), 0, z + rand(-4,4)); this.yaw = this.team === 'red' ? Math.PI : 0; }
+    this.pitch = 0; this.vel.set(0,0,0); this.onGround = true; this.path = null; this.pathT = 0; this.goal = null; this.stuckT = 0; this.lastPos = this.pos.clone(); this.vis = false; this.visT = 0;
     this.hp = 100; this.alive = true; this.deadT = 0; this.target = null; this.seeT = 0;
     this.burst = 0; this.fireCd = rand(0.5,1); this.ammo = this.W.mag; this.reloadT = 0;
     this.strafe = Math.random()<.5?-1:1; this.strafeT = rand(1,2); this.scanT = 0; this.speed = 0;
@@ -1013,6 +1172,7 @@ function updateBot(bot, dt){
     bot.deadT += dt; s.updateRagdoll(dt);
     if (bot.deadT > 6) bot.spawn(); else return;
   }
+  if (CUR_MAP && NAV) return updateBotOnMap(bot, dt);
   bot.scanT -= dt;
   if (bot.scanT <= 0){
     bot.scanT = 0.3;
@@ -1060,11 +1220,92 @@ function updateBot(bot, dt){
   s.root.position.copy(bot.pos); s.root.rotation.set(0, bot.yaw + Math.PI, 0);
   s.pose(dt, { speed: bot.speed, aim: aiming && bot.reloadT <= 0, pitch: bot.pitch });
 }
+
+// Bots on a map: see with line of sight, walk A* paths around walls, fight when they can see you
+const _be = V3(), _bt = V3();
+const eyeOf = (o, out) => out.set(o.pos.x, o.pos.y + 1.5, o.pos.z);
+const chestOf = (o, out) => out.set(o.pos.x, o.pos.y + (o === P && P.sliding > 0 ? 0.6 : 1.2), o.pos.z);
+function updateBotOnMap(bot, dt){
+  const s = bot.s, ai = bot.ai;
+  if (bot.reloadT > 0){ bot.reloadT -= dt; if (bot.reloadT <= 0) bot.ammo = bot.W.mag; }
+  bot.scanT -= dt;
+  if (bot.scanT <= 0){
+    bot.scanT = 0.25;
+    let best = null, bd = Infinity, bestVis = false;
+    eyeOf(bot, _be);
+    for (const e of enemiesOf(bot.team)){
+      const d = e.pos.distanceTo(bot.pos);
+      const vis = d < ai.range && !lineBlocked(_be, chestOf(e, _bt));
+      const score = d - (vis ? 1000 : 0);              // anyone visible beats anyone hidden
+      if (score < bd){ bd = score; best = e; bestVis = vis; }
+    }
+    if (best !== bot.target){ bot.target = best; bot.seeT = 0; bot.path = null; }
+    bot.vis = bestVis;
+  }
+  if (bot.target && !bot.target.alive){ bot.target = null; bot.vis = false; }
+  const wish = V3(); let aiming = false;
+  const t = bot.target;
+  if (t && bot.vis){
+    aiming = true; bot.seeT += dt; bot.path = null;
+    const dx = t.pos.x - bot.pos.x, dz = t.pos.z - bot.pos.z, dist = Math.hypot(dx, dz);
+    const err = angDiff(Math.atan2(-dx, -dz), bot.yaw);
+    bot.yaw += clamp(err, -4*dt, 4*dt);
+    bot.pitch = damp(bot.pitch, Math.atan2(chestOf(t, _bt).y - (bot.pos.y + 1.45), dist), 6, dt);
+    const fwd = V3(-Math.sin(bot.yaw), 0, -Math.cos(bot.yaw)), rgt = V3(-fwd.z, 0, fwd.x);
+    if (dist > ai.keep[1]) wish.addScaledVector(fwd, bot.cls === 'shotgun' ? 4.2 : 3.0);
+    else {
+      bot.strafeT -= dt; if (bot.strafeT <= 0){ bot.strafe *= -1; bot.strafeT = rand(0.8, 2.0); }
+      wish.addScaledVector(rgt, bot.strafe * (bot.cls === 'sniper' ? 0.8 : 1.8));
+      if (dist < ai.keep[0]) wish.addScaledVector(fwd, -2.5);
+    }
+    bot.fireCd -= dt;
+    if (bot.reloadT <= 0 && Math.abs(err) < 0.12 && bot.seeT > ai.aimT && bot.fireCd <= 0){
+      if (bot.burst <= 0) bot.burst = ai.burst[0] + (Math.random()*(ai.burst[1]-ai.burst[0]+1)|0);
+      bot.burst--; bot.ammo--; bot.fireCd = bot.burst > 0 ? ai.shot : rand(ai.gap[0], ai.gap[1]);
+      if (bot.ammo <= 0){ bot.reloadT = bot.cls === 'shotgun' ? 3 : 2.6; bot.burst = 0; }
+      botShoot(bot, dist);
+    }
+  } else {
+    bot.seeT = 0;
+    // walk somewhere: towards the enemy we know about, or a random spot
+    bot.pathT -= dt;
+    const goal = t ? [t.pos.x, t.pos.z] : (bot.goal || (bot.goal = navRandomPoint()));
+    if (goal && (!bot.path || bot.pathT <= 0)){
+      bot.path = navPath(bot.pos.x, bot.pos.z, goal[0], goal[1]) || null; bot.pathI = 0; bot.pathT = t ? 1.2 : 4;
+      if (!bot.path && !t) bot.goal = null;
+    }
+    if (bot.path && bot.pathI < bot.path.length){
+      // skip waypoints we can already walk to in a straight line
+      for (let k=0; k<3 && bot.pathI+1 < bot.path.length; k++){
+        const n = bot.path[bot.pathI+1];
+        if (!lineBlocked(_be.set(bot.pos.x, bot.pos.y + 0.4, bot.pos.z), _bt.set(n[0], bot.pos.y + 0.4, n[1]))) bot.pathI++; else break;
+      }
+      const wp = bot.path[bot.pathI], dx = wp[0] - bot.pos.x, dz = wp[1] - bot.pos.z, d = Math.hypot(dx, dz);
+      if (d < 0.45) bot.pathI++;
+      else {
+        const sp = bot.cls === 'shotgun' ? 4.0 : 3.2;
+        wish.set(dx/d*sp, 0, dz/d*sp);
+        bot.yaw += clamp(angDiff(Math.atan2(-dx, -dz), bot.yaw), -5*dt, 5*dt);
+      }
+    } else if (!t){ bot.goal = null; bot.path = null; }
+    bot.pitch = damp(bot.pitch, 0, 4, dt);
+    // unstick: no progress for a while -> new plan
+    bot.stuckT += dt;
+    if (bot.stuckT > 1.5){ if (bot.pos.distanceTo(bot.lastPos) < 0.4){ bot.path = null; bot.goal = null; bot.pathT = 0; bot.strafe *= -1; } bot.stuckT = 0; bot.lastPos.copy(bot.pos); }
+  }
+  for (const o of G.bots){ if (o === bot || !o.alive) continue; const d = V3().subVectors(bot.pos, o.pos); d.y = 0; const l = d.length(); if (l < 0.9 && l > 1e-4) wish.addScaledVector(d.normalize(), (0.9-l)*6); }
+  if (P.alive && G.team){ const d = V3().subVectors(bot.pos, P.pos); d.y = 0; const l = d.length(); if (l < 0.8 && l > 1e-4) wish.addScaledVector(d.normalize(), (0.8-l)*6); }
+  moveBody(bot, wish, dt);
+  bot.speed = damp(bot.speed, Math.hypot(bot.vel.x, bot.vel.z), 8, dt);
+  s.root.position.copy(bot.pos); s.root.rotation.set(0, bot.yaw + Math.PI, 0);
+  s.pose(dt, { speed: bot.speed, aim: aiming && bot.reloadT <= 0, pitch: bot.pitch });
+}
+
 function botShoot(bot, dist){
   const s = bot.s; s.fire();
   const from = s.muzzleWorld(V3());
   const t = bot.target, isP = t === P;
-  const tpos = isP ? V3(P.pos.x, P.pos.y + (P.sliding > 0 ? 0.6 : 1.15), P.pos.z) : V3(t.pos.x, 1.15, t.pos.z);
+  const tpos = isP ? V3(P.pos.x, P.pos.y + (P.sliding > 0 ? 0.6 : 1.15), P.pos.z) : V3(t.pos.x, t.pos.y + 1.15, t.pos.z);
   let chance, dmgP, dmgB;
   if (bot.cls === 'shotgun'){ chance = dist < 6 ? 0.85 : dist < 12 ? 0.6 : dist < 22 ? 0.3 : 0.08; const k = clamp(1 - (dist-5)/25, 0.25, 1); dmgP = 65*k; dmgB = 100*k; }
   else if (bot.cls === 'sniper'){ chance = clamp(0.6 - dist/400, 0.3, 0.6); dmgP = 75; dmgB = 80; }
@@ -1077,8 +1318,10 @@ function botShoot(bot, dist){
                    : tpos.clone().add(V3(rand(-1,1), rand(-0.6,1.2), rand(-1,1)).normalize().multiplyScalar(rand(0.4,1.6)));
     if (!(hit && i === 0)){
       const dir = V3().subVectors(to, from).normalize();
-      if (dir.y < -0.01){ const k = -from.y/dir.y; to.copy(from).addScaledVector(dir, Math.min(k, 150)); if (k < 150) puff(to); }
-      else to.copy(from).addScaledVector(dir, 150);
+      const wall = CUR_MAP ? rayBoxes(from, dir, 150) : Infinity;
+      const k = dir.y < -0.01 ? -from.y/dir.y : Infinity;
+      const dd = Math.min(wall, k, 150);
+      to.copy(from).addScaledVector(dir, dd); if (dd < 150) puff(to);
     }
     tracer(from, to, 0xffc46b);
   }
@@ -1100,7 +1343,7 @@ function spawnPlayer(){
   P.yaw = CUR_MAP ? Math.atan2(P.pos.x, P.pos.z) : (G.team === 'red' ? Math.PI : 0); P.pitch = 0;
   P.hp = 100; P.alive = true; P.ammo = P.W.mag; P.reserve = P.W.reserve; P.reloadT = 0; P.shotgunReload = false; P.cycleT = 0;
   P.sliding = 0; P.eye = 1.62; P.ads = 0;
-  if (P.body){ if (P.body.rag) P.body.endRagdoll(); if (P.body.W.id !== P.cls) P.body.setWeapon(P.cls); }
+  if (P.body){ if (P.body.rag) P.body.endRagdoll(); if (P.body.W.id !== P.cls) P.body.setWeapon(P.cls); applySkin(P.body.weapon); }
   equipViewmodel();
   $('dead').classList.add('hidden');
   $('wpn').textContent = P.W.name;
@@ -1242,16 +1485,7 @@ function updatePlayer(dt){
     P.vel.z = damp(P.vel.z, wish.z*speed, accel, dt);
   }
   if (P.jumpReq){ P.jumpReq = false; if (P.onGround){ P.vel.y = 5.8; P.onGround = false; P.sliding = 0; } }
-  // ladders: hold W (or Space) to climb, S to go down, let go to hang on
-  const LG = 0.5;
-  const lad = CUR_MAP && LADDERS.find(l => P.pos.x > l.minX - LG && P.pos.x < l.maxX + LG && P.pos.z > l.minZ - LG && P.pos.z < l.maxZ + LG && P.pos.y > l.minY - 0.3 && P.pos.y < l.maxY - 0.15);
-  P.climbing = false;
-  if (lad && P.sliding <= 0 && (keys.KeyW || keys.KeyS || !P.onGround)){
-    P.climbing = true;
-    P.vel.y = keys.KeyW || keys.Space ? 3.2 : keys.KeyS ? -3.2 : 0;
-    if (keys.KeyS && P.onGround) P.vel.y = 0;
-    P.vel.x *= 0.5; P.vel.z *= 0.5;
-  } else P.vel.y -= 18*dt;
+  P.vel.y -= 18*dt;
   const wasGround = P.onGround;
   P.pos.addScaledVector(P.vel, dt);
   if (CUR_MAP){
@@ -1424,7 +1658,7 @@ function buildClassCards(){
   $('classcards').querySelectorAll('.card').forEach(btn=>{
     btn.addEventListener('mouseenter', ()=>{ G.hoverClass = btn.dataset.cls; });
     btn.addEventListener('focus', ()=>{ G.hoverClass = btn.dataset.cls; });
-    btn.addEventListener('click', ()=>{ P.nextCls = btn.dataset.cls; startGame(G.team); });
+    btn.addEventListener('click', ()=>{ P.nextCls = btn.dataset.cls; startPractice(G.team); });
   });
 }
 function renderPauseCards(){
@@ -1465,7 +1699,7 @@ addEventListener('mouseup', e=>{ if (e.button === 0) mouse.l = false; if (e.butt
 addEventListener('contextmenu', e=>e.preventDefault());
 addEventListener('mousemove', e=>{
   if (G.state !== 'play' || !locked || G.paused) return;
-  const sens = 0.0022 * (P.ads > 0.5 ? Math.max(0.12, camera.fov/76) : 1);
+  const sens = 0.0022 * P.sensMul * (P.ads > 0.5 ? Math.max(0.12, camera.fov/76) : 1);
   P.yaw -= e.movementX * sens; P.pitch -= e.movementY * sens;
   P.swayX = clamp(P.swayX - e.movementX*0.00012, -0.02, 0.02); P.swayY = clamp(P.swayY + e.movementY*0.00012, -0.02, 0.02);
 });
@@ -1959,6 +2193,55 @@ function toHome(){
   if (/^[A-Z0-9]{5}$/.test(h)){ $('joincode').value = h; setHomeStatus('You were invited to room ' + h + '. Enter your name and press Join.'); }
 }
 function toTeamMenu(){ toMenu(); }
+// mouse sensitivity (saved in this browser)
+P.sensMul = 1; try { P.sensMul = clamp(+localStorage.getItem('ft_sens') || 1, 0.2, 3); } catch {}
+$('sens').value = P.sensMul; $('sensval').textContent = P.sensMul.toFixed(2);
+$('sens').addEventListener('input', () => { P.sensMul = +$('sens').value; $('sensval').textContent = P.sensMul.toFixed(2); try { localStorage.setItem('ft_sens', P.sensMul); } catch {} });
+// custom gun skin: one image stretched over the player's own weapons
+let skinTex = null;
+function setSkin(dataUrl){
+  if (skinTex){ skinTex.dispose(); skinTex = null; }
+  $('skinprev').classList.toggle('hidden', !dataUrl); $('skinclear').classList.toggle('hidden', !dataUrl);
+  if (!dataUrl){ refreshSkins(); return; }
+  $('skinprev').src = dataUrl;
+  const img = new Image();
+  img.onload = () => { skinTex = new THREE.Texture(img); skinTex.flipY = false; skinTex.colorSpace = THREE.SRGBColorSpace; skinTex.anisotropy = 4; skinTex.needsUpdate = true; refreshSkins(); };
+  img.src = dataUrl;
+}
+function applySkin(weapon){
+  if (!weapon) return;
+  weapon.traverse(o => {
+    if (!o.isMesh) return;
+    if (!o.userData.baseMat) o.userData.baseMat = o.material;
+    if (skinTex){ const m = o.userData.baseMat.clone(); m.map = skinTex; m.color.set(0xffffff); o.material = m; }
+    else o.material = o.userData.baseMat;
+  });
+}
+function refreshSkins(){ applySkin(vmWeapon); if (P.body) applySkin(P.body.weapon); }
+$('skinbtn').addEventListener('click', () => $('skinfile').click());
+$('skinclear').addEventListener('click', () => { try { localStorage.removeItem('ft_skin'); } catch {} setSkin(null); });
+$('skinfile').addEventListener('change', () => {
+  const f = $('skinfile').files[0]; $('skinfile').value = '';
+  if (!f) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(f.type)){ toast('Pick a PNG, JPG or WebP image.'); return; }
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const sc = Math.min(1, 1024 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width*sc)); c.height = Math.max(1, Math.round(img.height*sc));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const url = c.toDataURL('image/png');
+      try { localStorage.setItem('ft_skin', url); } catch { toast('Skin applied, but it is too big to remember after reload.'); }
+      setSkin(url); toast('Gun skin applied');
+    };
+    img.onerror = () => toast('That image could not be read.');
+    img.src = r.result;
+  };
+  r.readAsDataURL(f);
+});
+try { const saved = localStorage.getItem('ft_skin'); if (saved) setSkin(saved); } catch {}
+
 // home screen wiring
 (function(){
   let name = ''; try { name = localStorage.getItem('ft_name') || ''; } catch {}
@@ -1971,6 +2254,23 @@ function toTeamMenu(){ toMenu(); }
   $('joincode').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinbtn').click(); });
   $('practicebtn').onclick = () => { initAudio(); if (busy()) Net.close(); G.online = false; toMenu(); };
 })();
+
+// ---------- Practice: optional map ----------
+G.practiceMap = 'open';
+document.querySelectorAll('#pmap button').forEach(b => b.addEventListener('click', () => {
+  G.practiceMap = b.dataset.map;
+  document.querySelectorAll('#pmap button').forEach(x => x.classList.toggle('on', x === b));
+}));
+async function startPractice(team){
+  if (G.online){ startGame(team); return; }
+  if (G.practiceMap !== 'open'){
+    $('countdown').textContent = 'LOADING MAP'; $('countdown').classList.remove('hidden');
+    try { await buildMap(G.practiceMap); } catch (e){ console.error(e); toast('Could not load that map.', 4000); clearMap(); }
+    $('countdown').classList.add('hidden');
+  } else clearMap();
+  if (G.state !== 'class') return;
+  startGame(team);
+}
 
 // ---------- Menus / flow ----------
 function buildPreview(){
@@ -1996,6 +2296,8 @@ function showOnly(id){ for (const o of ['home','lobby','results','menu','classme
 function toMenu(){
   if (document.pointerLockElement) document.exitPointerLock();
   G.state = 'team'; G.paused = false; clearGame();
+  if (!G.online) clearMap();
+  $('pmaprow').classList.toggle('hidden', !!G.online);
   if (G.online){ P.alive = false; G.inWorld = false; sendState(true); }
   updateTeamMenu();
   for (const t in G.preview){ const s = G.preview[t]; s.root.visible = true; s.root.position.x = s.homeX; s.root.rotation.y = s.homeX < 0 ? 0.25 : -0.25; if (s.W.id !== 'rifle') s.setWeapon('rifle'); }
@@ -2127,7 +2429,7 @@ addEventListener('resize', ()=>{
     buildPreview();
     $('loading').classList.add('hidden');
     if (TEST){ G.team = TEST; P.nextCls = QS.get('cls') || 'rifle'; if (QS.get('map')) await buildMap(QS.get('map')); startGame(TEST); } else toHome();
-    window.__G = { THREE, Room, lobbyInfo, buildMap, MAPS, Net, remotes, vmScene, vmCam, hurtPlayer, G, P, keys, mouse, camera, startGame, toMenu, toClassMenu, pause, resume, WEAPONS, vm, get vmBody(){ return vmBody; } };
+    window.__G = { THREE, rampHeight, groundAt, get NAV(){ return NAV; }, get RAMPS(){ return RAMPS; }, navPath, Room, lobbyInfo, buildMap, MAPS, Net, remotes, vmScene, vmCam, hurtPlayer, G, P, keys, mouse, camera, startGame, toMenu, toClassMenu, pause, resume, WEAPONS, vm, get vmBody(){ return vmBody; } };
     window.DONE = 1;
   } catch (err){
     console.error(err); $('loadlbl').textContent = 'Could not load the game: ' + (err.message || err); $('loadlbl').style.color = 'var(--accent)'; $('loading').classList.remove('hidden');
